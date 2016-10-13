@@ -1,204 +1,514 @@
-/********* Fonts **********/
-
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Roboto'), local('Roboto-Regular'), url('../fonts/Roboto-Regular.ttf') format('truetype');
+/* Navigation bar */
+#navbar ul {
+  list-style-type: none;
+  overflow: hidden;
+  background-color: #003380;
+  padding: 0px 20px;
+  margin: 0;
 }
 
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 500;
-  src: local('Roboto Medium'), local('Roboto-Medium'), url('../fonts/Roboto-Medium.ttf') format('truetype');
+#navbar ul li {
+  display: inline-block;
+  border: px solid black;
+  margin: 0px;
 }
 
-/****** Main Styling ******/
-
-body {
-	font-family: 'Roboto', sans-serif;
-	font-size: 16px;
-	margin: 0;
-	padding: 0;
+#navbar ul li a {
+  display: block;
+  padding: 13px 14px;
+  text-decoration: none;
+  color: white;
 }
 
-header {
-	color: #00BCD4;
-	height: 56px;
-	margin: 0 0 14px 0;
-	text-align: center;
+.navbar-avatar {
+  border: px solid black;
+  width: 46px;
+  margin: 0;
+  padding: 3px;
 }
 
-p {
-	margin: 8px 0 0 0;
+#navbar ul li a:hover {
+  background-color: #002966;
 }
 
-.container p {
-	text-align: center;
-	padding: 0;
+.navleft {
+  float: left;
 }
 
-/****** Header Styling ******/
-
-header p {
-	margin: 16px 0 5px 0;
+.nav-right {
+  float: right;
 }
 
-.menu {
-	text-decoration: none;
-	padding: 6px;
-	margin: 0;
-	color: #727272;
+.active {
+  
+}
+/* Container */
+#container {
+  background-color: #f2f2f2;
+  border: px solid gray;
+  position: relative;
+  width: 100%;
+  left: 0%;
+  padding: 1%;
+  margin: 0% 0;
+}
+/* New status */
+.new-status {
+  background-color: white;
+  position: relative;
+  left: 10%;
+  border: 1px solid #ddd;
+  border-radius: 1px;
+  width: 50%;
+  padding: 10px;
 }
 
-.menu:visited {
-	color: #727272;
+.new-status:after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
-.menu:hover {
-	color: #FFA000;
+.status-my-avatar {
+  border: px solid #ddd;
+  width: 10%;
 }
 
-.menu:active {
-	color: #FF630D;
+.status-input {
+  width: 89%;
+  margin-left: 1%;
+  border: 0px;
+  border-bottom: 1px solid #eee;
+  resize: none;
+  padding: 10px;
 }
 
-header a ~ p {
-	margin: 0;
-	padding: 0;
-	display: inline;
-	color: #ECEFF1;
+.add-photo-btn {
+  padding: 5px 2%;
+  position: relative;
+  left: 11%;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
 }
 
-#display-name {
-	font-weight: 400;
+.post-status-btn {
+  padding: 5px 2%;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
 }
 
-/****** Login Styling ******/
 
-.login {
-	margin: 86px auto 0 auto;
-	text-align: center;
+
+
+/* News feed */
+#newsfeed {
+  position: relative;
+  border: px solid black;
+  border-radius: 3px;
+  min-height: 60px;
+  width: 100%;
+  left: 0%;
 }
 
-#login-btn {
-	width: 225px;
-	padding: 7px 5px;
+#newsfeed:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+/* Post */
+.post {
+  background-color: white;
+  position: relative;
+  width: 50%;
+  left: 10%;
+  margin: 10px 0%;
+  border: 1px solid #ddd;
+  border-radius: 1px;
+  min-height: 50px;
 }
 
-.btn p {
-	margin: 8px 0 0 0;
-	padding: 0;
+.post-header {
+  position: relative;
+  border: px solid gray;
+  margin: 10px 5px;
+  padding: 0px 5px;
 }
 
-.btn > img {
-	float: left;
-	margin-left: 10px
+.post-header:after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
-/****** Logo Div Styling ******/
+.post-owner-avatar {
+  position: relative;
+  border: px solid gray;
+  margin-right: 10px;
+  width: 11%;
+  z-index: 1;
+}
+
+.post-owner-name {
+  position: relative;
+  left: 0%;
+  border: px solid gray;
+  margin: 0px;
+  width: 100%;
+  padding: 0;
+  color: #003380;
+}
+
+.post-time {
+  border: px solid gray;
+  margin: px;
+  width: 100%;
+  color: gray;
+  font-size: 12px;
+}
+
+.post-content {
+  border: px solid gray;
+  margin: 5px;
+}
+
+.post-text {
+  border: px solid gray;
+  margin: 5px;
+}
+
+.post-photo {
+  border: px solid gray;
+  margin: 5px;
+}
+
+.post-likes {
+  border: px solid gray;
+  margin: 10px;
+}
+
+.like-btn {
+  padding: 5px 2%;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
+}
+
+.comment-btn {
+  padding: 5px 2%;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
+}
+/**/
+.comments {
+  border: px solid gray;
+  margin:  0px 5px;
+}
+
+.comment {
+  padding-top: 5px;
+  border-top: 1px solid #eee;
+  margin: 5px;
+}
+
+.comment-header {
+  border: px solid gray;
+  margin: px;
+}
+
+.comment-header:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.comment-owner-avatar {
+  border: px solid gray;
+  width: 7%;
+  margin-right: 10px;
+}
+
+.comment-owner-name {
+  border: px solid gray;
+  margin: px;
+  color: #003380;
+}
+
+.comment-time {
+  border: px solid gray;
+  color: gray;
+  font-size: 12px;
+  margin: px;
+}
+
+.comment-text {
+  border: px solid gray;
+  margin: px;
+}
+/**/
+.comment-post {
+  border: px solid gray;
+  margin: 10px;
+}
+
+.comment-post:after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.comment-my-avatar {
+  margin-right: 1%;
+  border: px solid gray;
+  width: 7%;
+}
+
+.comment-input {
+  border: 1px solid #eee;
+  border-radius: 1px;
+  width: 80%;
+  margin: 5px 0%;
+  padding: 5px;
+  font-size: 13px;
+}
+
+.post-comment-btn {
+  width: 11%;
+  margin: 3px 0;
+  padding: 5px;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
+}
+/**/
 
 img {
-	margin: 0 auto;
-	display: block;
+  width: 100%;
+  max-height: 100%;
 }
 
-.clementine-text { /* Styling for the Clementine.js text */
-	padding: 0;
-	margin: -25px 0 0 0;
-	font-weight: 500;
-	font-size: 60px;
-	color: #FFA000;
+.left {
+  float: left;
 }
 
-/****** Click Styling ******/
-
-.btn-container {	/* Styling for the div that contains the buttons */
-	margin: -10px auto 0 auto;
-	text-align: center;
+.right {
+  float: right;
+}
+/* Profile header */
+.profile-header {
+  position: relative;
+  width: 80%;
+  left: 5%;
+  background-color: white;
+  border: 1px solid #ddd;
 }
 
-.btn {	/* Styling for buttons */
-	margin: 0 8px;
-	color: white;
-	background-color: #00BCD4;
-	display: inline-block;
-	border: 0;
-	font-size: 14px;
-	border-radius: 3px;
-	padding: 10px 5px;
-	width: 100px;
-	font-weight: 500;
+.profile-header:after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
-.btn:focus {	/* Remove outline when hovering over button */
-	outline: none;
+.profile-cover {
+  background-image: url("");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  height: 300px;
 }
 
-.btn:active {	/* Scale the button down by 10% when clicking on button */
-	transform: scale(0.9, 0.9);
-	-webkit-transform: scale(0.9, 0.9);
-	-moz-transform: scale(0.9, 0.9);
+.profile-avatar {
+  position: relative;
+  background-color: #f2f2f2;
+  left: 2%;
+  width: 15%;
+  top: -50px;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  z-index: 2;
 }
 
-.btn-delete {	/* Styling for delete button */
-	background-color: #ECEFF1;
-	color: #212121;
+.profile-name {
+  position: relative;
+  left: 3%;
+  z-index: 2;
+  font-size: 30px;
+  border: px solid black;
+  width: 82%;
+  
+}
+/**/
+.profile-navbar {
+  border: px solid gray;
+  position: relative;
+  left: 3%;
+  width: 90%;
 }
 
-#click-nbr {
-	font-weight: 400;
+.profile-navbar ul {
+  list-style-type: none;
+  overflow: hidden;
+  background-color: #;
+  margin: 0;
+  padding: 0;
 }
 
-/****** Profile Styling ******/
-
-.github-profile {
-	width: 350px;
-	height: 200px;
-	border-radius: 3px;
-	margin: 86px auto 0 auto;
-	background-color: #EEE;
-	text-align: center;
-	color: #000;
+.profile-navbar ul li {
+  display: inline-block;
+  margin: 0;
+  padding: 0;
 }
 
-.github-profile p:first-child {
-	padding-top: 16px;
+.profile-navbar ul li a {
+  text-decoration: none;
+  display: block;
+  background-color: #;
+  border-left: 1px solid #e6e6e6;
+  border-radius: 1px;
+  padding: 10px 14px;
+  margin: 0;
 }
 
-.github-profile p:nth-child(5) {
-	margin-bottom: 16px
+.profile-navbar ul li a:hover {
+  background-color: #f2f2f2;
 }
 
-.github-profile p {
-	margin: 0 0 0 16px;
-	text-align: left;
+.profile-friendzone {
+  border: px solid gray;
+  position: relative;
+  left: 18%;
+  width: 80%;
 }
 
-.profile-value {
-	font-weight: 400;
+.profile-friendzone:after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
-span {
-	font-weight: 500;
+.add-friend-btn {
+  
+  padding: 5px 13px;
+  border: 1px solid gray;
+  border-radius: 3px;
+  background-color: #00b300;
+  color: white;
 }
 
-.github-profile > img {
-	padding-top: 16px;
-	margin-bottom: 16px;
+/* Friend list */
+#friend-list {
+  position: relative;
+  width: 80%;
+  left: 5%;
+  margin: 2% 0;
 }
 
-.github-profile .menu:hover {
-	color: #FFA000;
+.friend:after {
+  content: '';
+  display: block;
+  clear: both;
 }
 
-.github-profile .menu:active {
-	color: #FF630D;
+.friend {
+  background-color: white;
+  width: 60%;
+  border: 1px solid #ddd;
+  margin: 5px 0;
+  border-radius: 1px;
+  min-height: 100px;
 }
 
-#menu-divide {
-	color: #FFFFFF;
-	display: inline;
-	margin: 0;
+.friend-avatar {
+  margin: 1%;
+  width: 14%;
+  margin-right: 1%;
 }
+
+.friend-unfriend-btn {
+  padding: 5px 2%;
+  border: 1px solid gray;
+  background-color: #003380;
+  border-radius: 1px;
+  color: #e6ecff;
+  font-size: 13px;
+}
+
+.friend-name {
+  width: 100%;
+  margin: 1%;
+  border: px solid gray;
+  color: #003380;
+}
+
+/* About */
+#about {
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 1px;
+  margin: 1% 0;
+  padding: 1%;
+  width: 40%;
+  position: relative;
+  left: 5%;
+}
+/* Screen smaller than 800px */
+@media only screen and (max-width: 800px) {
+  /* Post */
+  .post{
+    width: 94%;
+    left: 3%;
+  }
+  
+  .post-owner-avatar {
+    width: 14%;
+  }
+  
+  .comment-owner-avatar {
+    width: 12%;
+  }
+  
+  .comment-my-avatar {
+    width: 12%;
+  }
+  
+  .comment-input {
+    width: 87%;
+    padding: 3px;
+  }
+  
+  .post-comment-btn {
+    width: 20%;
+    margin-left: 0%;
+  }
+  /* New status */ 
+  .new-status {
+    width: 94%;
+    left: 3%;
+  }
+  
+  .status-my-avatar {
+    width: 12%;
+  }
+  
+  .status-input {
+    width: 87%;
+  }
+  
+  .add-photo-btn {
+    left: 13%;
+  }
+}
+

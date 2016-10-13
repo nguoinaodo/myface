@@ -1,0 +1,21 @@
+doctype html
+html
+  head
+    link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" type="text/css")
+    link(rel="stylesheet" href="/public/css/login.css" type="text/css")
+  body(style="background-color: #f2f2f2;")
+    h1#welcome Welcome to myface 
+    br
+    form(action="/login" method="POST")#login
+      h1 Login
+      b Email
+      input(name="email")#email
+      br
+      b Password
+      input(name="password" type="password")#password
+      br
+      br
+      input(type="submit" value="Login")#login-btn
+      
+    script(type="text/javascript" src="common/ajax-functions.js")  
+    script(type="text/javascript" src="controllers/signup-login.client.js")

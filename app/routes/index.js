@@ -1,57 +1,112 @@
 'use strict';
 
 var path = process.cwd();
-var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
+// var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
+var pool = require(process.cwd() + '/app/db/pool.js');
+var profileController = require(process.cwd() + '/app/controllers/profile.server.js');
+var homeController = require(process.cwd() + '/app/controllers/home.server.js');
 
 module.exports = function (app, passport) {
+	
 
-	function isLoggedIn (req, res, next) {
-		if (req.isAuthenticated()) {
-			return next();
-		} else {
-			res.redirect('/login');
-		}
-	}
-
-	var clickHandler = new ClickHandler();
-
+	/*
 	app.route('/')
 		.get(isLoggedIn, function (req, res) {
+			
 			res.sendFile(path + '/public/index.html');
 		});
-
+	*/
+	// testdb
+	app.route('/testdb')
+		.get(function(req, res) {
+			pool.getConnection(function(err, conn) {
+				if (err) throw err;
+				
+				console.log('connect as id ' + conn.threadId);
+				conn.query('select postId, count(userId) from yeu_thich'
+					+ ' group by postId', function(err, rows) {
+					if (err) throw err;
+					
+					console.log('db connected');
+					res.json(rows);
+					conn.release();
+				});
+			}); 
+		});
+	// 
+	app.route('/')
+		.get(function(req, res) {
+			var auth = req.isAuthenticated();
+			console.log('/');
+			if (auth) {
+				res.render('home', {
+					auth: auth,
+					displayName: req.user.displayName,
+					userId: req.user.userId
+				});
+			} else {
+				res.render('home', {
+					auth: auth
+				});
+			}
+		});
+	
+	app.route('/user/:userId')
+		.get(function(req, res) {
+		    var auth = req.isAuthenticated();
+			console.log('route /user/' + req.params.userId);
+			if (auth) {
+				console.log('hiiii');
+				res.render('profile', {
+					myId: req.user.userId,
+					userId: req.params.userId,
+					displayName: req.user.displayName
+				});
+			} else {
+				res.redirect('/');
+			}
+		});
+	// api
+	app.route('/api/getUserInfo/:userId')
+		.get(profileController.getUserInfo);
+	
+	app.route('/api/getUserCoverAndAvatar/:userId')
+		.get(profileController.getUserCoverAndAvatar);
+	
+	app.route('/api/getUserPostIds/:userId')
+		.get(profileController.getUserPostIds);
+	
+	app.route('/api/getPost/:postId')
+		.get(profileController.getPost);
+	
+	app.route('/api/getPostComments/:postId')
+		.get(profileController.getPostComments);
+	
+	// authentication
 	app.route('/login')
 		.get(function (req, res) {
-			res.sendFile(path + '/public/login.html');
-		});
+			res.render('login');
+		})
+		.post(passport.authenticate('local-login', {
+			successRedirect: '/',
+			failureRedirect: '/login',
+			failureFlash: true
+		}));
+	
+	app.route('/signup')
+		.get(function(req, res) {
+			res.render('signup');  
+		})
+		.post(passport.authenticate('local-signup', {
+			successRedirect: '/',
+			failureRedirect: '/signup',
+			failureFlash: true
+		}));
 
 	app.route('/logout')
 		.get(function (req, res) {
 			req.logout();
 			res.redirect('/login');
 		});
-
-	app.route('/profile')
-		.get(isLoggedIn, function (req, res) {
-			res.sendFile(path + '/public/profile.html');
-		});
-
-	app.route('/api/:id')
-		.get(isLoggedIn, function (req, res) {
-			res.json(req.user.github);
-		});
-
-	app.route('/auth/github')
-		.get(passport.authenticate('github'));
-
-	app.route('/auth/github/callback')
-		.get(passport.authenticate('github', {
-			successRedirect: '/',
-			failureRedirect: '/login'
-		}));
-
-	app.route('/api/:id/clicks')
-		.get(isLoggedIn, clickHandler.getClicks)
-		.post(isLoggedIn, clickHandler.addClick)
-		.delete(isLoggedIn, clickHandler.resetClicks);
+	
 };
