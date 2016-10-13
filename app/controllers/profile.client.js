@@ -43,7 +43,6 @@ function main() {
         avatarURL = data.avatar.url;
         coverURL = data.cover.url;
         
-        navbarAvatar.setAttribute('src', avatarURL);
         profileAvatar.setAttribute('src', avatarURL);
         statusMyAvatar.setAttribute('src', avatarURL);
         

@@ -35,37 +35,10 @@ module.exports = function (app, passport) {
 		});
 	// 
 	app.route('/')
-		.get(function(req, res) {
-			var auth = req.isAuthenticated();
-			console.log('/');
-			if (auth) {
-				res.render('home', {
-					auth: auth,
-					displayName: req.user.displayName,
-					userId: req.user.userId
-				});
-			} else {
-				res.render('home', {
-					auth: auth
-				});
-			}
-		});
+		.get(homeController.getHome);
 	
 	app.route('/user/:userId')
-		.get(function(req, res) {
-		    var auth = req.isAuthenticated();
-			console.log('route /user/' + req.params.userId);
-			if (auth) {
-				console.log('hiiii');
-				res.render('profile', {
-					myId: req.user.userId,
-					userId: req.params.userId,
-					displayName: req.user.displayName
-				});
-			} else {
-				res.redirect('/');
-			}
-		});
+		.get(profileController.getUser);
 	// api
 	app.route('/api/getUserInfo/:userId')
 		.get(profileController.getUserInfo);

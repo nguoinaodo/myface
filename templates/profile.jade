@@ -28,12 +28,11 @@ html
         li.nav-right
           a.active(href='/') Home
         - var profileLink = '/user/' + myId
-        
         li.nav-right.navbar-display-name
           a(href= profileLink)= displayName
         li.nav-right
           .navbar-avatar  
-            img(src="" alt="img")
+            img(src= avatarUrl alt="img")
     #container
         .profile-header
             .profile-cover
