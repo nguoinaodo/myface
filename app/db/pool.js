@@ -1,5 +1,5 @@
 var mysql = require('mysql');
-/*
+
 var pool = mysql.createPool({
     connectionLimit: 100,
     host: '4ed363a7-1093-4a78-a73a-a69600beaeb1.mysql.sequelizer.com',
@@ -8,8 +8,8 @@ var pool = mysql.createPool({
     database: 'db4ed363a710934a78a73aa69600beaeb1',
     multipleStatements: true
 });
-*/
 
+/*
 var pool = mysql.createPool({
     connectionLimit: 100,
     multipleStatements: true,
@@ -18,5 +18,5 @@ var pool = mysql.createPool({
     password: process.env.MYSQL_PASSWORD,
     database: process.env.MYSQL_DATABASE
 });
-
+*/
 module.exports = pool;

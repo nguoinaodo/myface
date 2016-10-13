@@ -24,10 +24,8 @@ function main() {
     ajaxRequest('GET', '/api/getUserInfo/' + userId, function(data) {
         var aboutDiv = document.getElementById('about');
         
-        console.log('hi');
         document.querySelector('.profile-name span').innerHTML = data.displayName;
         
-        console.log(data.birthday);
         aboutDiv.innerHTML = '<h3>Intro</h3><br>' + '<p>From ' + data.from +'</p>'
             + '<p>Lives in ' + data.livesIn + '</p>'
             + '<p>Birthday: ' + new Date(data.birthday).toDateString() + '</p>';
@@ -40,12 +38,13 @@ function main() {
         
         var profileCoverDiv = document.querySelector('.profile-cover');
         
-        avatarURL = data.avatar.url;
-        coverURL = data.cover.url;
+        var avatarUrl = data.avatar? data.avatar.url: '';
+        var coverUrl = data.cover? data.cover.url: '';
         
-        profileAvatar.setAttribute('src', avatarURL);
+        console.log(avatarUrl);
+        profileAvatar.setAttribute('src', avatarUrl);
         
-        profileCoverDiv.style.backgroundImage = 'url("' + coverURL + '")'    
+        profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")'    
     });
     
     // ajaxRequest('GET', '/api/getRelationshipStatus')

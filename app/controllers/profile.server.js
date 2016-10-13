@@ -85,6 +85,7 @@ var ProfileController  = {
                         
                         conn.release();
                         result.cover = rows[0];
+                        console.log(result);
                         res.json(result);
                     });
                     

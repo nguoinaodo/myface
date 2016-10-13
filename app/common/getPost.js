@@ -36,13 +36,14 @@ function getPost(postId) {
                     dateTime = data.content.dateTime,
                     text = data.content.text,
                     avatarUrl = data.avatarUrl;
+                var myAvatarUrl = document.querySelector('.navbar-avatar img').getAttribute('src');
                 
                 document.querySelector('#post-owner-name' + postId + ' b').innerHTML = displayName;
                 document.querySelector('#post-time' + postId + ' span').innerHTML = dateTime;
                 document.querySelector('#post-text' + postId + ' p').innerHTML = text;
                 document.querySelector('#like-btn' + postId).innerHTML = likes + ' Like';
-                document.querySelector('#post-owner-avatar' + postId + ' img').setAttribute('src', avatarURL);
-                document.querySelector('#comment-my-avatar' + postId + ' img').setAttribute('src', avatarURL);
+                document.querySelector('#post-owner-avatar' + postId + ' img').setAttribute('src', avatarUrl);
+                document.querySelector('#comment-my-avatar' + postId + ' img').setAttribute('src', myAvatarUrl);
             });
             
     }
