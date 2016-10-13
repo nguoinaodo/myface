@@ -25,7 +25,7 @@ var ProfileController  = {
 			            res.render('profile', {
         					auth: auth,
         					displayName: req.user.displayName,
-        					userId: userId,
+        					myId: userId,
         					avatarUrl: rows[0]? rows[0].url: ''
         				});
 			        });

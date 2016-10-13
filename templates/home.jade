@@ -31,7 +31,7 @@ html
                 i.fa.fa-user-plus
             li.nav-right
               a.active(href='/') Home
-            - var profileLink = "/user/" + userId
+            - var profileLink = "/user/" + myId
             
             li.nav-right
               a(href= profileLink)= displayName
@@ -40,8 +40,8 @@ html
                 img(src= avatarUrl alt="img")
       #container
           .new-status
-            .status-my-avatar.left: img(src="" alt="img")
-            textarea(rows=3 placeholder="What's on your mind?").status-input
+            .status-my-avatar.left: img(src= avatarUrl alt="img")
+            textarea(rows=3 placeholder="Write something..").status-input
             button.add-photo-btn Add photo
             button.post-status-btn.right Post
             

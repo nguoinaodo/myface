@@ -44,7 +44,6 @@ function main() {
         coverURL = data.cover.url;
         
         profileAvatar.setAttribute('src', avatarURL);
-        statusMyAvatar.setAttribute('src', avatarURL);
         
         profileCoverDiv.style.backgroundImage = 'url("' + coverURL + '")'    
     });
