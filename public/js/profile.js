@@ -1,12 +1,11 @@
 var userId = window.location.pathname.substr(6);
-var avatarURL = '',
-    coverURL = '';
+var avatarUrl = '',
+    coverUrl = '';
 var myPostIds = [];
     
 ready(main);
 
 function main() {
-    console.log(userId);
     var newsfeedDiv = document.getElementById('newsfeed');
     
     newsfeedDiv.innerHTML = '';
@@ -23,31 +22,21 @@ function main() {
     // + load comment
     ajaxRequest('GET', '/api/getUserInfo/' + userId, function(data) {
         var aboutDiv = document.getElementById('about');
-        
-        document.querySelector('.profile-name span').innerHTML = data.displayName;
-        
-        aboutDiv.innerHTML = '<h3>Intro</h3><br>' + '<p>From ' + data.from +'</p>'
-            + '<p>Lives in ' + data.livesIn + '</p>'
-            + '<p>Birthday: ' + new Date(data.birthday).toDateString() + '</p>';
-    });
-    
-    ajaxRequest('GET', '/api/getUserCoverAndAvatar/' + userId, function(data) {
-        var navbarAvatar = document.querySelector('.navbar-avatar img'),
-            profileAvatar = document.querySelector('.profile-avatar img'),
-            statusMyAvatar = document.querySelector('.status-my-avatar img');
-        
+        var profileAvatar = document.querySelector('.profile-avatar img');
         var profileCoverDiv = document.querySelector('.profile-cover');
+        avatarUrl = data.avatar? data.avatar.url: '';
+        coverUrl = data.cover? data.cover.url: '';
         
-        var avatarUrl = data.avatar? data.avatar.url: '';
-        var coverUrl = data.cover? data.cover.url: '';
+        document.querySelector('.profile-name span').innerHTML = data.info.displayName;
         
-        console.log(avatarUrl);
+        aboutDiv.innerHTML = '<h3>Intro</h3><br>' + '<p>From ' + data.info.from +'</p>'
+            + '<p>Lives in ' + data.info.livesIn + '</p>'
+            + '<p>Birthday: ' + new Date(data.info.birthday).toDateString() + '</p>';
+        
         profileAvatar.setAttribute('src', avatarUrl);
-        
-        profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")'    
+        profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")';
     });
     
-    // ajaxRequest('GET', '/api/getRelationshipStatus')
     ajaxRequest('GET', '/api/getUserPostIds/' + userId, function(data) {
         myPostIds = data.postIds;
         

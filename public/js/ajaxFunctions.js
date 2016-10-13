@@ -34,6 +34,6 @@ function ajaxPost(url, postData, callback) {
       };
       
       xmlhttp.open('POST', url, true);
-      xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-      xmlhttp.send(data);
+      xmlhttp.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      xmlhttp.send(postData);
 }

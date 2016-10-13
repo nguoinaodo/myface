@@ -12,6 +12,7 @@ function getPost(postId) {
                 + '</div>';
             var postContent = '<div class="post-content" id="post-content' + postId + '">' 
                 + '<div class="post-text" id="post-text' + postId + '"><p></p></div>'
+                + '<div class="post-photo" id="post-photo' + postId + '"></div>'
                 + '</div>';
             
             var postLikes = '<div class="post-likes" id="post-likes' + postId + '">' 
@@ -24,7 +25,7 @@ function getPost(postId) {
             var commentPost = '<div class="comment-post" id="comment-post' + postId + '">' 
                 + '<div class="comment-my-avatar left" id="comment-my-avatar' + postId + '"><img alt="img"></div>'
                 + '<input placeholder="Write a comment.." class="comment-input" id="comment-input' + postId + '"></input>'
-                + ' <button class="post-comment-btn" id="post-comment-btn' + postId + '">Post</button>'
+                + ' <button onclick="comment(this);" class="post-comment-btn" id="post-comment-btn' + postId + '">Post</button>'
                 + '</div>';
                 
             postDiv.innerHTML += postHeader + postContent 
@@ -35,8 +36,10 @@ function getPost(postId) {
                 var displayName = data.content.displayName,
                     dateTime = data.content.dateTime,
                     text = data.content.text,
-                    avatarUrl = data.avatarUrl;
+                    avatarUrl = data.avatarUrl,
+                    photoUrls = data.photoUrls;
                 var myAvatarUrl = document.querySelector('.navbar-avatar img').getAttribute('src');
+                var postPhotoDiv = document.getElementById('post-photo' + postId);
                 
                 document.querySelector('#post-owner-name' + postId + ' b').innerHTML = displayName;
                 document.querySelector('#post-time' + postId + ' span').innerHTML = dateTime;
@@ -44,15 +47,48 @@ function getPost(postId) {
                 document.querySelector('#like-btn' + postId).innerHTML = likes + ' Like';
                 document.querySelector('#post-owner-avatar' + postId + ' img').setAttribute('src', avatarUrl);
                 document.querySelector('#comment-my-avatar' + postId + ' img').setAttribute('src', myAvatarUrl);
+                
+                photoUrls.forEach(function(url) {
+                    postPhotoDiv.innerHTML += '<img src="' + url +'" alt="img">'; 
+                });                
+                
             });
             
     }
 
 function like(thisObj) {
-    var postId = thisObj.getAttribute('id').substr(10);
+    var postId = thisObj.getAttribute('id').substr(8);
     
+    console.log('like');
+    console.log(postId);
     ajaxPost('/api/like/' + postId, '', function(data) {
-         
+        thisObj.innerHTML = data.likes + ' Like'; 
+    });
+} 
+
+function comment(thisObj) {
+    var postId = thisObj.getAttribute('id').substr(16);
+    var text = document.getElementById('comment-input' + postId).value;
+    
+    ajaxPost('/api/comment/' + postId, 'text=' + text, function(data) {
+        var displayName = data.displayName,
+            commentId = data.commentId,
+            dateTime = data.dateTime;
+        var avatarUrl = document.querySelector('.navbar-avatar img').getAttribute('src');
+            
+        var commentHeader = '<div class="comment-header" id="comment-header' + commentId + '">' 
+            + ' <div class="comment-owner-avatar left" id="comment-owner-avatar' + commentId + '">' 
+            + ' <img alt="img" src="' + avatarUrl + '"></div>'
+            + ' <div class="comment-owner-name" id="comment-owner-name' + commentId + '"><b>' + displayName + '</b></div>'
+            + ' <div class="comment-time" id="comment-time' + commentId + '">' + dateTime + '</div>'
+            + '</div>';
+        
+        var commentText = '<div class="comment-text" id="comment-text' + commentId + '"><p>' + text + '</p></div>';
+        var commentsDiv = document.querySelector('#commentsPost' + postId);
+        
+        commentsDiv.innerHTML += '<div class="comment" id="comment' + commentId + '">' 
+            + commentHeader + commentText
+            + '</div>';    
     });
 } 
 
@@ -89,5 +125,14 @@ function getComments(thisObj) {
         commentArr.forEach(function(comment, i) {
             commentsDiv.innerHTML += comment; 
         });
+    });
+}
+
+function addPost() {
+    var text = document.querySelector('.status-input').value;
+    var postData = 'text=' + text;
+    
+    ajaxPost('/api/addPost', postData, function(data) {
+        
     });
 }

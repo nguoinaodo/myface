@@ -1,59 +1,38 @@
 'use strict';
 
-var path = process.cwd();
-// var ClickHandler = require(path + '/app/controllers/clickHandler.server.js');
-var pool = require(process.cwd() + '/app/db/pool.js');
-var profileController = require(process.cwd() + '/app/controllers/profile.server.js');
-var homeController = require(process.cwd() + '/app/controllers/home.server.js');
+var userController = require(process.cwd() + '/app/controllers/userController.js');
+var postController = require(process.cwd() + '/app/controllers/postController.js');
 
 module.exports = function (app, passport) {
-	
-
-	/*
+	// home 
 	app.route('/')
-		.get(isLoggedIn, function (req, res) {
-			
-			res.sendFile(path + '/public/index.html');
-		});
-	*/
-	// testdb
-	app.route('/testdb')
-		.get(function(req, res) {
-			pool.getConnection(function(err, conn) {
-				if (err) throw err;
-				
-				console.log('connect as id ' + conn.threadId);
-				conn.query('select postId, count(userId) from yeu_thich'
-					+ ' group by postId', function(err, rows) {
-					if (err) throw err;
-					
-					console.log('db connected');
-					res.json(rows);
-					conn.release();
-				});
-			}); 
-		});
-	// 
-	app.route('/')
-		.get(homeController.getHome);
+		.get(userController.getHomePage);
 	
+	// profile
 	app.route('/user/:userId')
-		.get(profileController.getUser);
+		.get(userController.getProfilePage);
+	
 	// api
 	app.route('/api/getUserInfo/:userId')
-		.get(profileController.getUserInfo);
-	
-	app.route('/api/getUserCoverAndAvatar/:userId')
-		.get(profileController.getUserCoverAndAvatar);
+		.get(userController.getUserInfo);
 	
 	app.route('/api/getUserPostIds/:userId')
-		.get(profileController.getUserPostIds);
+		.get(userController.getUserPostIds);
 	
 	app.route('/api/getPost/:postId')
-		.get(profileController.getPost);
+		.get(postController.getPost);
 	
 	app.route('/api/getPostComments/:postId')
-		.get(profileController.getPostComments);
+		.get(postController.getPostComments);
+	
+	app.route('/api/like/:postId')
+		.post(postController.like);
+	
+	app.route('/api/comment/:postId')
+		.post(postController.comment);
+	
+	app.route('/api/addPost')
+		.post(postController.addPost);
 	
 	// authentication
 	app.route('/login')
