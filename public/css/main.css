@@ -125,7 +125,7 @@
 .post {
   background-color: white;
   position: relative;
-  width: 43%;
+  width: 40%;
   left: 10%;
   margin: 10px 0%;
   border: 1px solid #ddd;
@@ -468,7 +468,7 @@ img {
 @media only screen and (max-width: 800px) {
   /* Post */
   .post{
-    width: 94%;
+    width: 80%;
     left: 3%;
   }
   
