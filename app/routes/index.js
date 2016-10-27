@@ -1,24 +1,46 @@
 'use strict';
 
-var userController = require(process.cwd() + '/app/controllers/userController.js');
-var postController = require(process.cwd() + '/app/controllers/postController.js');
+var userController = require(process.cwd() + '/app/controllers/user.js');
+var postController = require(process.cwd() + '/app/controllers/post.js');
+var relationshipController = require(process.cwd() + '/app/controllers/relationship.js');
 
 module.exports = function (app, passport) {
-	// home 
+	//// home 
 	app.route('/')
 		.get(userController.getHomePage);
 	
-	// profile
+	//// profile
 	app.route('/user/:userId')
 		.get(userController.getProfilePage);
 	
-	// api
+	//// api
+	// homepage
+	app.route('/api/getNewsfeed')
+		.get(userController.getNewsfeed);
+	// user
 	app.route('/api/getUserInfo/:userId')
 		.get(userController.getUserInfo);
 	
-	app.route('/api/getUserPostIds/:userId')
-		.get(userController.getUserPostIds);
+	app.route('/api/getProfilePostIds/:userId')
+		.get(userController.getProfilePostIds);
 	
+	// friend
+	app.route('/api/addFriend')
+		.post(relationshipController.addFriend);
+	
+	app.route('/api/unfriend')
+		.post(relationshipController.unfriend);
+	
+	app.route('/api/cancelRequest')
+		.post(relationshipController.cancelRequest);
+	
+	app.route('/api/acceptRequest')
+		.post(relationshipController.acceptRequest);
+		
+	app.route('/api/deleteRequest')
+		.post(relationshipController.deleteRequest);
+		
+	// post
 	app.route('/api/getPost/:postId')
 		.get(postController.getPost);
 	
@@ -34,7 +56,7 @@ module.exports = function (app, passport) {
 	app.route('/api/addPost')
 		.post(postController.addPost);
 	
-	// authentication
+	//// authentication
 	app.route('/login')
 		.get(function (req, res) {
 			res.render('login');

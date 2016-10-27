@@ -8,12 +8,37 @@ html
     br
     form(action="/signup" method="POST")#signup
       h1 Sign up
+      br
       b Email
-      input(name="email")#email
+      input(name="email").text
       br
       b Password
-      input(name="password" type="password")#password
+      input(name="password" type="password").text
       br
+      b Full name
+      input(name="displayName" type="text").text
       br
+      b From
+      input(name="from" type="text").text
+      br
+      b Lives in
+      input(name="livesIn" type="").text
+      br
+      b Birthday
+      input(name="birthday" type="date").text
+      br
+      b Sex
+      br
+      .radio: label
+        input(type="radio" name="sex" value="male")
+        | Male
+      .radio: label
+        input(type="radio" name="sex" value="female")
+        | Female
+      .radio: label 
+        input(type="radio" name="sex" value="other")
+        | Other
+      br
+      
       input(type="submit" value="Sign up")#signup-btn
       

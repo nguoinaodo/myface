@@ -12,22 +12,25 @@ var postController = {
             pool.getConnection(function(err, conn) {
                 if (err) throw err;
                 
-                var contentQuery = 'select user.userId, displayName, dateTime, text from user, dang_bai, post'
-                    + ' where user.userId = dang_bai.userId and post.postId = dang_bai.postId and post.postId = "' + postId + '";'
-                    + ' select count(userId) from yeu_thich '
-                    + ' where postId = "' + postId + '";'
-                    + ' select url from photo where postId = "' + postId + '";';
+                var infoQuery = 'SELECT user.userId, displayName, dateTime, text FROM user, dang_bai, post'
+                    + ' WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = ?;'
+                    + 'SELECT user.userId, displayName, dateTime, text FROM user, dang_len_tuong, post'
+                    + ' WHERE user.userId = dang_len_tuong.userId1 AND post.postId = dang_len_tuong.postId AND post.postId = ?;';
+                var likeQuery =  'SELECT count(userId) FROM yeu_thich '
+                    + ' WHERE postId = ?;';
+                var photoQuery = 'SELECT url FROM photo WHERE postId = ?;';
                 
-                conn.query(contentQuery, function(err, results) {
+                conn.query(infoQuery + likeQuery + photoQuery, [postId, postId, postId, postId], function(err, results) {
                     if (err) {
                         conn.release();
                         throw err;
                     }
-            
-                    var userId = results[0][0]['userId'];
+                    
+                    var content = results[0][0]? results[0][0]: results[1][0];
+                    var userId = content['userId'];
                     var photoUrls = [];
                     
-                    results[2].forEach(function(row) {
+                    results[3].forEach(function(row) {
                         photoUrls.push(row.url); 
                     });
                     
@@ -44,10 +47,12 @@ var postController = {
                         conn.release();
                     
                         res.json({
-                            avatarUrl: rows[0]? rows[0]['url']: '',
-                            content: results[0][0],
-                            likes: results[1][0]['count(userId)'],
-                            photoUrls: photoUrls
+                            data: {
+                                avatarUrl: rows[0]? rows[0]['url']: '',
+                                content: content,
+                                likes: results[2][0]['count(userId)'],
+                                photoUrls: photoUrls
+                            }
                         });  
                     });
                 });
@@ -82,7 +87,7 @@ var postController = {
                     
                     if (count === 0) {
                         conn.release();
-                        res.json([]);
+                        res.json({data: []});
                     }
                     
                     rows.forEach(function(row, i) {
@@ -105,7 +110,11 @@ var postController = {
                             if (count === 0) {
                             
                                 conn.release();
-                                res.json({comments: results});
+                                res.json({
+                                    data: {
+                                        comments: results
+                                    }
+                                });
                             }
                         });
                     });
@@ -149,8 +158,10 @@ var postController = {
                                 
                                 conn.release();
                                 res.json({
-                                    liked: true,
-                                    likes: results[1][0]['count(userId)']
+                                    data: {
+                                        liked: true,
+                                        likes: results[1][0]['count(userId)']
+                                    }
                                 });
                             });
                     } else {
@@ -167,8 +178,10 @@ var postController = {
                                 
                                 conn.release();
                                 res.json({
-                                    liked: false,
-                                    likes: results[1][0]['count(userId)']
+                                    data: {
+                                        liked: false,
+                                        likes: results[1][0]['count(userId)']   
+                                    }
                                 });
                             });
                     }
@@ -197,7 +210,7 @@ var postController = {
                     }
                     
                     var commentId = result.insertId;
-                    var dateTime = new Date().toJSON().substring(0, 19).replace(/T/, ' ');
+                    var dateTime = new Date().toJSON().substring(0, 19).replace(/T|Z/, ' ');
                     
                     conn.query('insert into binh_luan set ?',
                         [{userId: userId, postId: postId, commentId: commentId, dateTime: dateTime}], function(err, result) {
@@ -207,10 +220,12 @@ var postController = {
                             }
                             
                             res.json({
-                                userId: userId,
-                                displayName: req.user.displayName,
-                                dateTime: dateTime,
-                                commentId: commentId
+                                data: {
+                                    userId: userId,
+                                    displayName: req.user.displayName,
+                                    dateTime: dateTime,
+                                    commentId: commentId
+                                }
                             });
                         });
                 });
@@ -224,36 +239,83 @@ var postController = {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var userId = req.user.userId;
+            var myId = req.user.userId;
+            var userId = Number(req.body.to);
             var text = req.body.text;
             
             pool.getConnection(function(err, conn) {
                 if (err) throw err;
                 
-                conn.query('insert into post set ?;', [{text: text}], function(err, result) {
+                conn.query('INSERT INTO post SET ?;', [{text: text}], function(err, result) {
                     if (err) {
                         conn.release();
                         throw err;
                     }
                     
                     var postId = result.insertId;
-                    var dateTime = new Date().toJSON().substring(0, 19).replace(/T/, ' ');
+                    var dateTime = new Date().toJSON().substring(0, 19).replace(/T|Z/, ' ');
                     
-                    conn.query('insert into dang_bai set ?', [{postId: postId, userId: userId, dateTime: dateTime}],
-                        function(err, result) {
-                            if (err) {
+                    if (myId === userId || userId === -1) {
+                        // post 
+                        conn.query('INSERT INTO dang_bai SET ?', [{postId: postId, userId: myId, dateTime: dateTime}],
+                            function(err, result) {
+                                if (err) {
+                                    conn.release();
+                                    throw err;
+                                } 
+                                
                                 conn.release();
-                                throw err;
-                            } 
-                            
-                            conn.release();
-                            res.json({
-                                userId: userId,
-                                displayName: req.user.displayName,
-                                dateTime: dateTime,
-                                postId: postId
-                            }); 
-                        });
+                                res.json({
+                                    errCode: 0,
+                                    msg: 'Successfully posted',
+                                    data: {
+                                        postId: postId
+                                    }
+                                }); 
+                            });
+                    } else {
+                        // post onto other's wall
+                        // check friendship
+                        var userId1, userId2;
+                        
+                        if (myId < userId) {
+                            userId1 = myId;
+                            userId2 = userId;
+                        } else {
+                            userId1 = userId;
+                            userId2 = myId;
+                        }
+                        
+                        conn.query('SELECT * FROM relationship WHERE userId1 = ? AND userId2 = ?;',
+                            [userId1, userId2], function(err, rows) {
+                                if (err) {
+                                    conn.release();
+                                    throw err;
+                                } 
+                                
+                                if (!rows[0] || rows[0].statusCode !== 1) {
+                                    return res.json({errCode: -1, msg: 'Not friend'});
+                                }
+                                
+                                conn.query('INSERT INTO dang_len_tuong SET ?', 
+                                    [{postId: postId, userId1: myId, userId2: userId, dateTime: dateTime}],
+                                    function(err, result) {
+                                        if (err) {
+                                            conn.release();
+                                            throw err;
+                                        } 
+                                        
+                                        conn.release();
+                                        res.json({
+                                            errCode: 0,
+                                            msg: 'Successfully posted on this user wall',
+                                            data: {
+                                                postId: postId
+                                            }
+                                        }); 
+                                    });
+                            });
+                    }
                 });
             });
         } else {
