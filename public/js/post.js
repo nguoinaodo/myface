@@ -1,6 +1,7 @@
 function getPost(postId) {
     var newsfeedDiv = document.getElementById('newsfeed');
-    newsfeedDiv.innerHTML += '<div class="post" id="post' + postId + '"></div>';
+    newsfeedDiv.innerHTML = '<div class="post" id="post' + postId + '"></div>'
+        + newsfeedDiv.innerHTML;
     var postDiv = document.getElementById('post' + postId);
     var postHeader = '<div class="post-header" id="postHeader' + postId + '">' 
         + '<div class="post-owner-avatar left" id="post-owner-avatar' + postId + '"><img alt="img"></div>' 
@@ -25,7 +26,7 @@ function getPost(postId) {
     postDiv.innerHTML += postHeader + postContent 
         + postLikes + postComments +  commentPost;    
     
-    ajaxRequest('GET', '/api/getPost/' + postId, function(response) {
+    ajaxGet('/api/getPost/' + postId, function(response) {
         var data = response.data;
         var likes = data.likes;
         var userId = data.content.userId,
@@ -84,10 +85,11 @@ function comment(thisObj) {
         var commentText = '<div class="comment-text" id="comment-text' + commentId + '"><p>' + text + '</p></div>';
         var commentsDiv = document.querySelector('#commentsPost' + postId);
         
-        commentsDiv.innerHTML += '<div class="comment" id="comment' + commentId + '">' 
+        commentsDiv.innerHTML = '<div class="comment" id="comment' + commentId + '">' 
             + commentHeader + commentText
-            + '</div>';    
-        
+            + '</div>' + commentsDiv.innerHTML;    
+        commentsDiv.removeChild('button');
+        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);">Hide comments</button>';
         input.value = '';
         input.setAttribute('autofocus');
     });
@@ -97,11 +99,12 @@ function getComments(thisObj) {
     // comment-btn..
     var postId = thisObj.getAttribute('id').substr(11);
     
-    ajaxRequest('GET', '/api/getPostComments/' + postId, function(response) {
+    ajaxGet('/api/getPostComments/' + postId, function(response) {
         var comments = response.data.comments;
         var commentsDiv = document.getElementById('commentsPost' + postId);
         var commentArr = [];
-        
+        commentsDiv.innerHTML = '';
+        // commentsDiv.removeChild('button');
         comments.forEach(function(comment, i) {
             var userId = comment.userId,
                 displayName = comment.displayName,
@@ -127,7 +130,33 @@ function getComments(thisObj) {
         commentArr.forEach(function(comment, i) {
             commentsDiv.innerHTML += comment; 
         });
+        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);">Hide comments</button>';
     });
+}
+
+function hideComments(thisObj) {
+    // toggleComments..
+    // var postId = thisObj.getAttribute('id').substr(14);
+    var commentsDiv = thisObj.parentNode;
+    var commentsDivChildren = commentsDiv.childNodes;
+    for (var i = 0; i < commentsDivChildren.length - 1; i++) {
+        commentsDivChildren[i].style.display = 'none';
+    }
+    
+    thisObj.innerHTML = 'Show comments';
+    thisObj.setAttribute('onclick', 'showComments(this);')
+}
+
+function showComments(thisObj) {
+    // toggleComments..
+    // var postId = thisObj.getAttribute('id').substr(14);
+    var commentsDiv = thisObj.parentNode;
+    var commentsDivChildren = commentsDiv.childNodes;
+    for (var i = 0; i < commentsDivChildren.length - 1; i++) {
+        commentsDivChildren[i].style.display = '';
+    }
+    thisObj.innerHTML = 'Hide comments';
+    thisObj.setAttribute('onclick', 'hideComments(this);');
 }
 
 function addPost() {

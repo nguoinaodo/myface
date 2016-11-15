@@ -1,10 +1,16 @@
 'use strict';
 
-var userController = require(process.cwd() + '/app/controllers/user.js');
-var postController = require(process.cwd() + '/app/controllers/post.js');
-var relationshipController = require(process.cwd() + '/app/controllers/relationship.js');
+var UserController = require(process.cwd() + '/app/controllers/user.js');
+var PostController = require(process.cwd() + '/app/controllers/post.js');
+var RelationshipController = require(process.cwd() + '/app/controllers/relationship.js');
+var randToken = require('rand-token');
+var tokenCollection = require('../db/lokijs/token');
 
-module.exports = function (app, passport) {
+module.exports = function (app, upload, passport, io) {
+	var userController = new UserController(io);
+	var postController = new PostController(io);
+	var relationshipController = new RelationshipController(io);
+	
 	//// home 
 	app.route('/')
 		.get(userController.getHomePage);
@@ -14,6 +20,9 @@ module.exports = function (app, passport) {
 		.get(userController.getProfilePage);
 	
 	//// api
+	// get my info 
+	app.route('/api/myInfo')
+		.get(userController.getMyInfo);
 	// homepage
 	app.route('/api/getNewsfeed')
 		.get(userController.getNewsfeed);
@@ -54,31 +63,76 @@ module.exports = function (app, passport) {
 		.post(postController.comment);
 	
 	app.route('/api/addPost')
-		.post(postController.addPost);
+		.post(upload.array('statusPhotos', 10), postController.addPost);
 	
+	app.post('/photos/upload', upload.array('photos', 12), function (req, res, next) {
+	  // req.files is array of `photos` files 
+	  // req.body will contain the text fields, if there were any 
+	});
 	//// authentication
 	app.route('/login')
 		.get(function (req, res) {
 			res.render('login');
 		})
-		.post(passport.authenticate('local-login', {
-			successRedirect: '/',
-			failureRedirect: '/login',
-			failureFlash: true
-		}));
+		.post(function(req, res, next) {
+			passport.authenticate('local-login', function(err, user, info) {
+				if (err) throw err;
+				if (!user) {
+					return res.redirect('/');
+				}
+				// delete old token 
+				var oldToken = tokenCollection.findOne({userId: user.userId});
+				
+				if (oldToken) {
+					tokenCollection.remove(token);
+				}
+				// generate new random token for socket authentication
+				var token = randToken.generate(32);
+				tokenCollection.insert({
+					token: token,
+					userId: user.userId
+				});
+				user.token = token;
+				// assign req.user 
+				req.logIn(user, function(err) {
+					if (err) throw err;
+					
+					res.redirect('/');
+				});
+			})(req, res, next);
+		});
 	
 	app.route('/signup')
 		.get(function(req, res) {
 			res.render('signup');  
 		})
-		.post(passport.authenticate('local-signup', {
-			successRedirect: '/',
-			failureRedirect: '/signup',
-			failureFlash: true
-		}));
+		.post(function(req, res, next) {
+			passport.authenticate('local-signup', function(err, user, info) {
+				if (err) throw err;
+				
+				if (!user) {
+					return res.redirect('/');
+				}
+				// generate new random token for socket authentication
+				var token = randToken.generate(32);
+				tokenCollection.insert({
+					token: token,
+					userId: user.userId
+				});
+				user.token = token;
+				
+				req.logIn(user, function(err) {
+					if (err) throw err;
+					
+					res.redirect('/');
+				});
+			}) (req, res, next);
+		});
 
 	app.route('/logout')
 		.get(function (req, res) {
+			var tokenDoc = tokenCollection.findOne({userId: req.user.userId});
+			tokenCollection.remove(tokenDoc);
 			req.logout();
 			res.redirect('/login');
 		});

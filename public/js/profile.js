@@ -1,3 +1,7 @@
+// my info
+var myUserId;
+var myToken;
+// user info
 var userId = Number(window.location.pathname.substr(6));
 var avatarUrl = '',
     coverUrl = '';
@@ -14,63 +18,71 @@ function main() {
     var friendzoneBtn = document.querySelector('#friendzone-btn');
     
     newsfeedDiv.innerHTML = '';
-    
-    // get user info
-    ajaxRequest('GET', '/api/getUserInfo/' + userId, function(response) {
+    // get my info
+    ajaxGet('/api/myInfo', function(response) {
         var data = response.data;
+        myUserId = data.userId;
+        myToken = data.token;
+        // connect socket
+        ioConnect();
         
-        avatarUrl = data.avatar? data.avatar.url: '';
-        coverUrl = data.cover? data.cover.url: '';
-        document.querySelector('.profile-name span').innerHTML = data.info.displayName;
+        // get user info
+        ajaxGet('/api/getUserInfo/' + userId, function(response) {
+            var data = response.data;
+            
+            avatarUrl = data.avatar? data.avatar.url: '';
+            coverUrl = data.cover? data.cover.url: '';
+            document.querySelector('.profile-name span').innerHTML = data.info.displayName;
+            
+            // friend button
+            switch(data.relationship.statusCode) {
+                case -2: // not found
+                    friendzoneBtn.innerHTML = 'Add friend';
+                    friendzoneBtn.setAttribute('onclick', 'addFriend(this);');
+                    break;
+                case -1: // is me
+                    friendzoneDiv.removeChild(friendzoneBtn);
+                    break;
+                case 0: // pending and not me
+                    if (data.relationship.actionId === userId) {
+                        // if this user is the one who send the friend request
+                        friendzoneBtn.innerHTML = 'Respond to Friend Request';
+                        friendzoneBtn.addEventListener('click', function() {
+                            this.style.display = 'none';
+                            friendzoneDiv.innerHTML += '<button id="acceptRequestBtn" class="friendzone-btn right" onclick="acceptRequest(this);">Accept request</button>';
+                            friendzoneDiv.innerHTML += '<button id="deleteRequestBtn" class="friendzone-btn right" onclick="deleteRequest(this);">Delete request</button>';
+                        });
+                    } else {
+                        friendzoneBtn.innerHTML = 'Cancel request';
+                        friendzoneBtn.setAttribute('onclick', 'cancelRequest(this);');   
+                    }
+                    break;
+                case 1: // accepted
+                    friendzoneBtn.innerHTML = 'Unfriend';
+                    friendzoneBtn.setAttribute('onclick', 'unfriend(this);');
+                    break;
+                default: 
+                    friendzoneDiv.removeChild(friendzoneBtn);
+                    break;
+            }
+            
+            // about
+            aboutDiv.innerHTML = '<h3>Intro</h3><br>' + '<p>From ' + data.info.from +'</p>'
+                + '<p>Lives in ' + data.info.livesIn + '</p>'
+                + '<p>Birthday: ' + new Date(data.info.birthday).toDateString() + '</p>';
+            // avatar and cover
+            profileAvatar.setAttribute('src', avatarUrl);
+            profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")';
+            
+        });
         
-        // friend button
-        switch(data.relationship.statusCode) {
-            case -2: // not found
-                friendzoneBtn.innerHTML = 'Add friend';
-                friendzoneBtn.setAttribute('onclick', 'addFriend(this);');
-                break;
-            case -1: // is me
-                friendzoneDiv.removeChild(friendzoneBtn);
-                break;
-            case 0: // pending and not me
-                if (data.relationship.actionId === userId) {
-                    // if this user is the one who send the friend request
-                    friendzoneBtn.innerHTML = 'Respond to Friend Request';
-                    friendzoneBtn.addEventListener('click', function() {
-                        this.style.display = 'none';
-                        friendzoneDiv.innerHTML += '<button id="acceptRequestBtn" class="friendzone-btn right" onclick="acceptRequest(this);">Accept request</button>';
-                        friendzoneDiv.innerHTML += '<button id="deleteRequestBtn" class="friendzone-btn right" onclick="deleteRequest(this);">Delete request</button>';
-                    });
-                } else {
-                    friendzoneBtn.innerHTML = 'Cancel request';
-                    friendzoneBtn.setAttribute('onclick', 'cancelRequest(this);');   
-                }
-                break;
-            case 1: // accepted
-                friendzoneBtn.innerHTML = 'Unfriend';
-                friendzoneBtn.setAttribute('onclick', 'unfriend(this);');
-                break;
-            default: 
-                friendzoneDiv.removeChild(friendzoneBtn);
-                break;
-        }
-        
-        // about
-        aboutDiv.innerHTML = '<h3>Intro</h3><br>' + '<p>From ' + data.info.from +'</p>'
-            + '<p>Lives in ' + data.info.livesIn + '</p>'
-            + '<p>Birthday: ' + new Date(data.info.birthday).toDateString() + '</p>';
-        // avatar and cover
-        profileAvatar.setAttribute('src', avatarUrl);
-        profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")';
-        
-    });
-    
-    // get user postIds
-    ajaxRequest('GET', '/api/getProfilePostIds/' + userId, function(response) {
-        postIds = response.data.postIds;
-        
-        postIds.forEach(function(postId, i) {
-            getPost(postId);
+        // get user postIds
+        ajaxGet('/api/getProfilePostIds/' + userId, function(response) {
+            postIds = response.data.postIds;
+            
+            postIds.forEach(function(postId, i) {
+                getPost(postId);
+            });
         });
     });
     

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Socket Test</title>
+</head>
+<body>
+	<input type="text" id="accType">
+	<input type="text" id="email">
+	<input type="text" id="password">
+	<button id="btnLogin">Login</button>
+	<input type="text" id="msg">
+	<button id="btnSend">Send</button>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+function postJson(url, data, callback) {
+	var request = new XMLHttpRequest();
+	request.open('POST', url, true);
+	request.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+	request.onload = function() {
+		if (request.status >= 200 && request.status < 400) {
+			callback(JSON.parse(request.responseText));
+		}
+		else {
+			callback(null);
+		}
+	}
+	request.send(JSON.stringify(data));
+}
+
+function getJson(url, callback) {
+	var request = new XMLHttpRequest();
+	request.open('GET', url, true);
+	request.onload = function() {
+		if (request.status >= 200 && request.status < 400) {
+			callback(JSON.parse(request.responseText));
+		}
+		else {
+			callback(null);
+		}
+	}
+	request.send();
+}
+</script>
+<script>
+	var socket = io();
+</script>
+</body>
+</html>

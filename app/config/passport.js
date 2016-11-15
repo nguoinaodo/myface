@@ -1,7 +1,7 @@
 'use strict';
 
 var LocalStrategy = require('passport-local').Strategy;
-var pool = require('../db/pool');
+var pool = require('../db/mysql/pool');
 var bcrypt = require('bcrypt-nodejs');
 
 module.exports = function (passport) {
