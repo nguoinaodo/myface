@@ -13,37 +13,11 @@ html
       button: a(href="/login") Login
       button: a(href="/signup") Sign up
     else 
-      #navbar
-          ul
-            li.nav-left
-              a(href='/')
-                i.fa.fa-maxcdn
-            li.nav-right
-              a(href='/logout')
-                i.fa.fa-power-off
-            li.nav-right
-              a(href='#')
-                i.fa.fa-bell-o
-            li.nav-right
-              a(href='#')
-                i.fa.fa-comments-o
-            li.nav-right
-              a(href='#')
-                i.fa.fa-user-plus
-            li.nav-right
-              a.active(href='/') Home
-            - var profileLink = "/user/" + myId
-            
-            li.nav-right
-              a(href= profileLink)= displayName
-            li.nav-right
-              .navbar-avatar  
-                img(src= avatarUrl alt="img")
+      include navbar
       #container
         .new-status
           .status-my-avatar.left: img(src= avatarUrl alt="img")
           textarea(rows=3 placeholder="Write something..").status-input
-          // button.add-photo-btn Add photo
           input(type="file" name="statusPhotos").status-photos
           button(onclick="addPost();").post-status-btn.right Post
         #newsfeed      

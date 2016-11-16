@@ -13,6 +13,7 @@ var postController = function(io) {
 			
 		} else {
 			res.redirect('/');
+			
 		} 
 	};
 
@@ -48,7 +49,8 @@ var postController = function(io) {
                 
                 conn.query(avatarQuery, function(err, rows) {
                     if (err) return console.error(err);
-
+                    
+                    content.dateTime = moment(content.dateTime).format('MMM Do YYYY HH:mm:ss');
                 	res.json({
 	                    data: {
 	                        avatarUrl: rows[0]? rows[0]['url']: '',
@@ -58,6 +60,7 @@ var postController = function(io) {
 	                    }
 	                });
             	});
+            });
         } else {
             res.redirect('/');
         }
@@ -93,7 +96,8 @@ var postController = function(io) {
                         if (err) return console.error(err);
                         
                         row.avatarUrl = rows[0]? rows[0].url: '';
-                        results[i] = row;
+                        results[i] = Object.assign({}, row);
+                        results[i].dateTime = moment(row.dateTime).format('MMM Do YYYY HH:mm:ss');
                         count--;
                         if (count === 0) {
                             res.json({

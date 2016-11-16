@@ -9,37 +9,15 @@ html
     script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.5.1/socket.io.js')
     
   body(style="background-color: #f2f2f2;")
-    #navbar
-      ul
-        li.nav-left
-          a(href='/')
-            i.fa.fa-maxcdn
-        li.nav-right
-          a(href='/logout')
-            i.fa.fa-power-off
-        li.nav-right
-          a(href='#')
-            i.fa.fa-bell-o
-        li.nav-right
-          a(href='#')
-            i.fa.fa-comments-o
-        li.nav-right
-          a(href='#')
-            i.fa.fa-user-plus
-        li.nav-right
-          a.active(href='/') Home
-        - var profileLink = '/user/' + myId
-        li.nav-right.navbar-display-name
-          a(href= profileLink)= displayName
-        li.nav-right
-          .navbar-avatar  
-            img(src= avatarUrl alt="img")
-	
-        
-    #container
+    if !auth
+      h1 Please login or sign up
+      button: a(href="/login") Login
+      button: a(href="/signup") Sign up
+    else  
+      include navbar
+      #container
         .profile-header
             .profile-cover
-              
             .profile-avatar.left 
               img(src="" alt="img")       
             .profile-name
@@ -57,16 +35,16 @@ html
         #about
         
         .new-status
-            .status-my-avatar.left: img(src= avatarUrl alt="img")
-            textarea(rows=3 placeholder="Write something..").status-input
-            // button.add-photo-btn Add photo
-            input(type="file" name="statusPhotos").status-photo
-            button(onclick="addPost();").post-status-btn.right Post
+          .status-my-avatar.left: img(src= avatarUrl alt="img")
+          textarea(rows=3 placeholder="Write something..").status-input
+          // button.add-photo-btn Add photo
+          input(type="file" name="statusPhotos").status-photo
+          button(onclick="addPost();").post-status-btn.right Post
         
         #newsfeed
         
       
-    script(src="/public/js/ajaxFunctions.js" type="text/javascript")        
-    script(src="/public/js/post.js" type="text/javascript")
-    script(src="/public/js/profile.js" type="text/javascript")
-    script(src="/public/js/io.js" type="text/javascript")
+      script(src="/public/js/ajaxFunctions.js" type="text/javascript")        
+      script(src="/public/js/post.js" type="text/javascript")
+      script(src="/public/js/profile.js" type="text/javascript")
+      script(src="/public/js/io.js" type="text/javascript")

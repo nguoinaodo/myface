@@ -1,0 +1,33 @@
+#navbar
+  ul
+    li.left
+      a(href='/').navbar-a
+        i.fa.fa-maxcdn
+    li.right
+      a(href='/logout').navbar-a
+        i.fa.fa-power-off
+    li.right.noti-li
+      span.noti-count
+      a(href='#').navbar-a
+        i.fa.fa-bell-o
+      .noti-container
+        .noti-header Notifications
+        .noti-body.notis
+          .noti.noti-loadmore ...            
+        .noti-footer
+          a(href="#") See all
+    li.right
+      a(href='#').navbar-a
+        i.fa.fa-comments-o
+    li.right
+      a(href='#').navbar-a
+        i.fa.fa-user-plus
+    li.right
+      a.active(href='/').navbar-a Home
+    - var profileLink = '/user/' + myId
+    
+    li.right.navbar-display-name
+      a(href= profileLink).navbar-a= displayName
+    li.right
+      .navbar-avatar  
+        img(src= avatarUrl alt="img")
