@@ -18,7 +18,9 @@ module.exports = function (app, upload, passport, io) {
 	//// profile
 	app.route('/user/:userId')
 		.get(userController.getProfilePage);
-	
+	//// post
+	app.route('/post/:postId')
+		.get(postController.getPostPage);
 	//// api
 	// get my info 
 	app.route('/api/myInfo')

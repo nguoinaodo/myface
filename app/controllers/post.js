@@ -5,11 +5,24 @@ var tokenCollection = require('../db/lokijs/token');
 var moment = require('moment');
 
 var postController = function(io) {
+	this.getPostPage = function(req, res) {
+		var auth = req.isAuthenticated();
+		if (auth) {
+			var postId = Number(req.params.postId);
+			var userId = req.user.userId;
+			
+		} else {
+			res.redirect('/');
+		} 
+	};
+
     this.getPost = function(req, res) {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var postId = Number(req.params.postId);
+        	var pathArray = req.path.split('/');
+        	var isPostOnItsOwnPage = (pathArray.indexOf('api') == -1)? true: false;
+        	var postId = Number(req.params.postId);
             var infoQuery = 'SELECT user.userId, displayName, dateTime, text FROM user, dang_bai, post'
                 + ' WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = ?;'
                 + 'SELECT user.userId, displayName, dateTime, text FROM user, dang_len_tuong, post'
@@ -35,17 +48,16 @@ var postController = function(io) {
                 
                 conn.query(avatarQuery, function(err, rows) {
                     if (err) return console.error(err);
-                    
-                    res.json({
-                        data: {
-                            avatarUrl: rows[0]? rows[0]['url']: '',
-                            content: content,
-                            likes: results[2][0]['count(userId)'],
-                            photoUrls: photoUrls
-                        }
-                    });  
-                });
-            });
+
+                	res.json({
+	                    data: {
+	                        avatarUrl: rows[0]? rows[0]['url']: '',
+	                        content: content,
+	                        likes: results[2][0]['count(userId)'],
+	                        photoUrls: photoUrls
+	                    }
+	                });
+            	});
         } else {
             res.redirect('/');
         }
