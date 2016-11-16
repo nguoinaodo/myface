@@ -113,7 +113,6 @@ var UserController  = function(io) {
                 // relationship
                 if (myId == userId) {
                     data.relationship = {statusCode: -1, msg: 'is me'};
-                    conn.release();
                     return res.json({data: data});
                 } else if (myId < userId) {
                     userId1 = myId;

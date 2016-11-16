@@ -76,7 +76,7 @@ module.exports = function (app, upload, passport, io) {
 		})
 		.post(function(req, res, next) {
 			passport.authenticate('local-login', function(err, user, info) {
-				if (err) throw err;
+				if (err) return console.error(err);
 				if (!user) {
 					return res.redirect('/');
 				}
@@ -95,7 +95,7 @@ module.exports = function (app, upload, passport, io) {
 				user.token = token;
 				// assign req.user 
 				req.logIn(user, function(err) {
-					if (err) throw err;
+					if (err) return console.error(err);
 					
 					res.redirect('/');
 				});
@@ -108,7 +108,7 @@ module.exports = function (app, upload, passport, io) {
 		})
 		.post(function(req, res, next) {
 			passport.authenticate('local-signup', function(err, user, info) {
-				if (err) throw err;
+				if (err) return console.error(err);
 				
 				if (!user) {
 					return res.redirect('/');
@@ -122,7 +122,7 @@ module.exports = function (app, upload, passport, io) {
 				user.token = token;
 				
 				req.logIn(user, function(err) {
-					if (err) throw err;
+					if (err) return console.err(err);
 					
 					res.redirect('/');
 				});

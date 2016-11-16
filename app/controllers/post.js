@@ -2,13 +2,14 @@
 
 var conn = require(process.cwd() + '/app/db/mysql/connection.js');
 var tokenCollection = require('../db/lokijs/token');
+var moment = require('moment');
 
 var postController = function(io) {
     this.getPost = function(req, res) {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var postId = req.params.postId;
+            var postId = Number(req.params.postId);
             var infoQuery = 'SELECT user.userId, displayName, dateTime, text FROM user, dang_bai, post'
                 + ' WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = ?;'
                 + 'SELECT user.userId, displayName, dateTime, text FROM user, dang_len_tuong, post'
@@ -39,7 +40,7 @@ var postController = function(io) {
                         data: {
                             avatarUrl: rows[0]? rows[0]['url']: '',
                             content: content,
-                            likes: results[2][0]['COUNT(userId)'],
+                            likes: results[2][0]['count(userId)'],
                             photoUrls: photoUrls
                         }
                     });  
@@ -54,7 +55,7 @@ var postController = function(io) {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var postId = req.params.postId;
+            var postId = Number(req.params.postId);
             var query = 'SELECT user.userId, displayName, dateTime, text, comment.commentId' 
                 + ' FROM user, binh_luan, comment'
                 + ' WHERE user.userId = binh_luan.userId AND comment.commentId = binh_luan.commentId'
@@ -101,7 +102,7 @@ var postController = function(io) {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var postId = req.params.postId;
+            var postId = Number(req.params.postId);
             var userId = req.user.userId;
             var query = 'SELECT * FROM yeu_thich'
                 + ' WHERE userId = "' + userId + '" AND postId = "' + postId + '";';
@@ -112,7 +113,7 @@ var postController = function(io) {
                 if (!rows[0]) {
                     // like
                     query = 'INSERT INTO yeu_thich SET ?;' 
-                        + ' SELECT COUNT(userId) FROM yeu_thich'
+                        + ' SELECT count(userId) FROM yeu_thich'
                         + ' WHERE postId = ?;';
                     conn.query(query, [{userId: userId, postId: postId}, postId], function(err, results) {
                         if (err) return console.error(err);
@@ -124,16 +125,32 @@ var postController = function(io) {
                             }
                         });
                         // send notification
-                        query = 'SELECT userId FROM dang_bai WHERE postId = ?'
-                            + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?';
+                        query = 'SELECT userId FROM dang_bai WHERE postId = ?;'
+                            + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?;';
                         conn.query(query, [postId, postId], function(err, results) {
                             if (err) return console.error(err);
                             
                             var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
-                            var tokenDoc = tokenCollection.findOne({userId: receiverId});
-                            io.sockets.connected[tokenDoc.socketId].emit('like', {
-                                from: userId,
-                                postId: postId
+                            var noti = {
+                            	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                            	actionCode: 0, // like
+                            	read: false,
+                            	from: userId,
+                            	to: receiverId, 
+                            	postId: postId
+                            };
+                            query = 'INSERT INTO notification SET ?';
+                            conn.query(query, [noti], function(err, result) {
+                            	if (err) return console.error(err);
+
+                            	var tokenDoc = tokenCollection.findOne({userId: receiverId});
+	                            if (tokenDoc) {
+	                            	noti.notiId = result.insertId;
+	                            	delete noti.userId2;
+	                            	noti.displayName = req.user.displayName;
+	                            	io.sockets.connected[tokenDoc.socketId].emit('like', noti);
+	                            	console.log('User id ' + userId + ' like post id ' + postId + ' of user id ' + receiverId);
+	                            }
                             });
                         });
                     });
@@ -141,7 +158,7 @@ var postController = function(io) {
                     // unlike
                     query = 'DELETE FROM yeu_thich'
                         + ' WHERE userId = ? AND postId = ?;'
-                        + ' SELECT COUNT(userId) FROM yeu_thich'
+                        + ' SELECT count(userId) FROM yeu_thich'
                         + ' WHERE postId = ?;'; 
                     conn.query(query, [userId, postId, postId], function(err, results) {
                         if (err) return console.error(err);
@@ -149,7 +166,7 @@ var postController = function(io) {
                         res.json({
                             data: {
                                 liked: false,
-                                likes: results[1][0]['COUNT(userId)']   
+                                likes: results[1][0]['count(userId)']   
                             }
                         });
                     });
@@ -164,7 +181,7 @@ var postController = function(io) {
         var auth = req.isAuthenticated();
         
         if (auth) {
-            var postId = req.params.postId;
+            var postId = Number(req.params.postId);
             var userId = req.user.userId;
             var text = req.body.text;
             
@@ -172,7 +189,7 @@ var postController = function(io) {
                 if (err) return console.error(err);
                 
                 var commentId = result.insertId;
-                var dateTime = new Date().toJSON().substring(0, 19).replace(/T|Z/, ' ');
+                var dateTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
                 var query  = 'INSERT INTO binh_luan SET ?';
                 conn.query(query, [{userId: userId, postId: postId, commentId: commentId, dateTime: dateTime}], function(err, result) {
                     if (err) return console.error(err);
@@ -186,16 +203,33 @@ var postController = function(io) {
                         }
                     });
                     // send notification
-                    query = 'SELECT userId FROM dang_bai WHERE postId = ?'
+                    query = 'SELECT userId FROM dang_bai WHERE postId = ?;'
                         + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?';
                     conn.query(query, [postId, postId], function(err, results) {
                         if (err) return console.error(err);
                         
                         var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
-                        var tokenDoc = tokenCollection.findOne({userId: receiverId});
-                        io.sockets.connected[tokenDoc.socketId].emit('comment', {
-                            from: userId,
-                            postId: postId
+                        var noti = {
+                        	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                        	actionCode: 1, // comment
+                        	read: false,
+                        	from: userId,
+                        	to: receiverId,
+                        	postId: postId
+                        };
+
+                        query = 'INSERT INTO notification SET ?';
+                        conn.query(query, [noti], function(err, result) {
+                        	if (err) return console.error(err);
+
+                        	var tokenDoc = tokenCollection.findOne({userId: receiverId});
+	                        if (tokenDoc) {
+	                        	noti.notiId = result.insertId;
+	                        	noti.displayName = req.user.displayName;
+	                        	delete noti.userId2;	
+	                        	io.sockets.connected[tokenDoc.socketId].emit('comment', noti);	
+	                        	console.log('User id ' + userId + ' comment on post id ' + postId + ' of user id ' + receiverId);
+	                        }
                         });
                     });
                 });
@@ -217,7 +251,7 @@ var postController = function(io) {
                 if (err) return console.error(err);
                 
                 var postId = result.insertId;
-                var dateTime = new Date().toJSON().substring(0, 19).replace(/T|Z/, ' ');
+                var dateTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
                 
                 if (myId === userId || userId === -1) {
                     // post 
@@ -263,13 +297,28 @@ var postController = function(io) {
                                 }
                             }); 
                             // send notification
-                            var tokenDoc = tokenCollection.findOne({userId: userId2});
-                            if (tokenDoc) {
-                                io.sockets.connected[tokenDoc.socketId].emit('postOnWall', {
-                                    from: userId1,
-                                    postId: postId
-                                });
-                            }
+                            var noti = {
+	                        	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+	                        	actionCode: 2, // post on wall
+	                        	read: false,
+	                        	from: myId,
+	                        	to: userId,
+	                        	postId: postId
+	                        };
+
+	                        query = 'INSERT INTO notification SET ?';
+	                        conn.query(query, [noti], function(err, result) {
+	                        	if (err) return console.error(err);
+
+	                        	var tokenDoc = tokenCollection.findOne({userId: userId});
+	                            if (tokenDoc) {
+	                            	noti.notiId = result.insertId;
+	                            	noti.displayName = req.user.displayName;
+	                            	delete noti.to;
+	                                io.sockets.connected[tokenDoc.socketId].emit('postOnWall', noti);
+	                                console.log('User id ' + myId + ' post a post id ' + postId + ' of user id ' + userId);
+	                            }
+	                        });
                         });
                     });
                 }

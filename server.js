@@ -1,33 +1,29 @@
 'use strict';
 
+require('dotenv').load();
 var http = require('http');
 
 var express = require('express');
 var app = express();
 var server = http.Server(app);
 var routes = require('./app/routes/index.js');
-// authenticate
 var passport = require('passport');
 var session = require('express-session');
-// post body parser
 var bodyParser = require('body-parser');
-// io
 var io = require('socket.io')(server);
 var ioInit = require('./app/io/ioInit');
-// upload file
 var multer = require('multer');
 var storage = multer.diskStorage({
-     destination : function(req,file,cb){
-    	 cb(null,'./upload');
-     },
-     filename : function(req,file,cb){
-    	 cb(null,file.originalname);
-     }
+    destination: function(req, file, cb){
+        cb(null, './upload');
+    },
+    filename: function(req, file, cb){
+        cb(null, file.originalname);
+    }
 });
 var upload = multer({storage: storage});
 
 ioInit(io);
-require('dotenv').load();
 require('./app/config/passport')(passport);
 
 app.set('view engine', 'jade');

@@ -2,6 +2,7 @@
 
 var conn = require('../db/mysql/connection.js');
 var tokenCollection = require('../db/lokijs/token.js');
+var moment = require('moment');
 
 module.exports = function(io) {
     this.addFriend = function(req, res) {
@@ -27,12 +28,26 @@ module.exports = function(io) {
                 
                 res.json({errCode: 0, msg: 'Friend request sent'});
                 // send notification to user who friend request sent to
-                var tokenDoc = tokenCollection.findOne({userId: userId2});
-                if (tokenDoc) {
-                    io.sockets.connected[tokenDoc.socketId].emit('friendRequest', {
-                        from: userId1
-                    });
-                }
+                var noti = {
+                    dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                    actionCode: 3, // friend request
+                    read: false,
+                    from: myId,
+                    to: userId
+                };
+
+                query = 'INSERT INTO notification SET ?';
+                conn.query(query, [noti], function(err, result) {
+                    if (err) return console.error(err);
+
+                    var tokenDoc = tokenCollection.findOne({userId: userId});
+                    if (tokenDoc) {
+                        noti.notiId = result.insertId;
+                        noti.displayName = req.user.displayName;
+                        delete noti.to;
+                        io.sockets.connected[tokenDoc.socketId].emit('friendRequest', noti);
+                    }
+                });
             });
         } else {
             res.redirect('/');
@@ -141,12 +156,26 @@ module.exports = function(io) {
                 
                 res.json({errCode: 0, msg: 'Successfully accept request'});
                 // send notification
-                var tokenDoc = tokenCollection.findOne({userId: userId2});
-                if (tokenDoc) {
-                    io.sockets.connected[tokenDoc.socketId].emit('friendRequestAccepted', {
-                        from: userId1 
-                    });
-                }
+                var noti = {
+                    dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                    actionCode: 4, // friend request accepted
+                    read: false,
+                    from: myId,
+                    to: userId
+                };
+
+                query = 'INSERT INTO notification SET ?';
+                conn.query(query, [noti], function(err, result) {
+                    if (err) return console.error(err);
+
+                    var tokenDoc = tokenCollection.findOne({userId: userId});
+                    if (tokenDoc) {
+                        noti.notiId = result.insertId;
+                        noti.displayName = req.user.displayName;
+                        delete noti.to;
+                        io.sockets.connected[tokenDoc.socketId].emit('friendRequestAccepted', noti);
+                    }
+                });
             });
         } else {
             res.redirect('/');
