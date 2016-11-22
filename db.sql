@@ -86,15 +86,13 @@ create table `binh_luan` (
 create table `avatar` (
 	`photoId` int not null,
     `userId` int not null,
-    `dateTime` datetime,
-    primary key (`photoId`)
+    `dateTime` datetime
 );
 
 create table `cover` (
 	`photoId` int not null,
     `userId` int not null,
-    `dateTime` datetime,
-    primary key (`photoId`)
+    `dateTime` datetime
 );
 
 create table `dang_len_tuong` (
@@ -257,3 +255,7 @@ alter table `relationship`
     
 	add constraint `fk_relationship_actionId` foreign key (`actionId`)
 	references `user`(`userId`) on delete cascade;
+
+insert into `photo` (`url`) values('/public/img/male.jpg');
+insert into `photo` (`url`) values('/public/img/female.jpg');
+insert into `photo` (`url`) values('/public/img/other.jpg');

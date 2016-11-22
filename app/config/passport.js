@@ -3,6 +3,7 @@
 var LocalStrategy = require('passport-local').Strategy;
 var conn = require('../db/mysql/connection');
 var bcrypt = require('bcrypt-nodejs');
+var moment = require('moment');
 
 module.exports = function (passport) {
 	passport.serializeUser(function (user, done) {
@@ -10,7 +11,8 @@ module.exports = function (passport) {
 	});
 
 	passport.deserializeUser(function (id, done) {
-		conn.query('select * from user where userId = "' + id + '"', function(err, rows) {
+		var query = 'SELECT * FROM `user` WHERE userId = ?'; 
+		conn.query(query, [id], function(err, rows) {
 			if (err) return done(err);
 
 			done(err, rows[0]);
@@ -23,7 +25,8 @@ module.exports = function (passport) {
 		passReqToCallback: true
 	}, function(req, email, password, done) {
 		process.nextTick(function() {
-			conn.query('select * from user where email ="' + email + '"', function(err, rows) {
+			var query = 'SELECT * FROM `user` WHERE email = ?'; 
+			conn.query(query, [email], function(err, rows) {
 				if (err) return done(err);
 				// email exists
 				if (rows.length) { 
@@ -39,11 +42,29 @@ module.exports = function (passport) {
 				newUser.birthday = req.body.birthday;
 				newUser.sex = req.body.sex;
 				newUser.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10), null);
-				conn.query('insert into user set ?;', newUser, function(err, result) {
+				
+				query = 'INSERT INTO `user` SET ?;';
+				conn.query(query, newUser, function(err, result) {
 					if (err) return done(err);
 					
 					newUser.userId = result.insertId;
-					return done(null, newUser);
+					var avatar = {
+						userId: newUser.userId,
+						dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss')
+					};
+					if (newUser.sex == 'male') {
+						avatar.photoId = 1;
+					} else if (newUser.sex = 'female') {
+						avatar.photoId = 2;
+					} else {
+						avatar.photoId = 3;
+					}
+					query = 'INSERT INTO avatar SET ?';
+					conn.query(query, avatar, function(err, result) {
+						if (err) return done(err);
+
+						return done(null, newUser);	
+					});
 				});
 			});
 		});
@@ -55,7 +76,7 @@ module.exports = function (passport) {
 		passwordField: 'password',
 		passReqToCallback: true
 	}, function(req, email, password, done) {
-		conn.query('select * from user where email = "' + email + '"', function(err, rows) {
+		conn.query('SELECT * FROM `user` WHERE email = "' + email + '"', function(err, rows) {
 			if (err) return done(err);
 			// no user found
 			if (!rows.length) {

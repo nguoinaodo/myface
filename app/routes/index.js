@@ -88,7 +88,6 @@ module.exports = function (app, upload, passport, io) {
 	});
 	
 	//// test
-	
 	app.get('/upload', function(req, res, next) {
 		res.sendFile(process.cwd() + '/public/testUpload.html');
 	});
