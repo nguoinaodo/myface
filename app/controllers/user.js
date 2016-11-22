@@ -92,24 +92,19 @@ var UserController  = function(io) {
             var myId = req.user.userId;
             var userId1, userId2;
             var data = {};
-            var infoQuery = 'SELECT * FROM user WHERE userId = ?;',
-                avatarQuery = 'SELECT url, photo.photoId FROM photo, avatar' 
-                    + ' WHERE avatar.photoId = photo.photoId AND userId = ?' 
-                    + ' ORDER BY dateTime DESC LIMIT 1;',
-                coverQuery = 'SELECT url, photo.photoId FROM photo, cover' 
-                    + ' WHERE cover.photoId = photo.photoId AND userId = ?' 
-                    + ' ORDER BY dateTime DESC LIMIT 1;',
-                relationshipQuery = 'SELECT statusCode, actionId FROM relationship'
-                    + ' WHERE userId1 = ? AND userId2 = ?;';
-            var query = infoQuery + avatarQuery + coverQuery;
-                
-            conn.query(query, [userId, userId, userId], function(err, results) {
+            var query = 'SELECT `user`.*, (SELECT url FROM avatar, photo WHERE avatar.photoId = photo.photoId' 
+                        + ' AND avatar.userId = ? ORDER BY `dateTime` LIMIT 1) AS avatarUrl,' 
+                        + ' (SELECT url FROM cover, photo WHERE cover.photoId = photo.photoId' 
+                        + ' AND cover.userId = ? ORDER BY `dateTime` LIMIT 1) AS coverUrl'
+                    + ' FROM `user` WHERE userId = ?';
+
+            conn.query(query, [userId, userId, userId], function(err, rows) {
                 if (err) return console.error(err);
                 
-                data.info =  results[0][0];
-                delete data.info.password;
-                data.avatar =  results[1][0];
-                data.cover = results[2][0];
+                if (rows[0]) {
+                    data.info = Object.assign({}, rows[0]);
+                    delete data.info.password;    
+                }
                 // relationship
                 if (myId == userId) {
                     data.relationship = {statusCode: -1, msg: 'is me'};
@@ -121,8 +116,10 @@ var UserController  = function(io) {
                     userId1 = userId;
                     userId2 = myId;
                 } 
-                
-                conn.query(relationshipQuery, [userId1, userId2], function(err, rows) {
+
+                query = 'SELECT statusCode, actionId FROM relationship'
+                    + ' WHERE userId1 = ? AND userId2 = ?';
+                conn.query(query, [userId1, userId2], function(err, rows) {
                     if (err) return console.error(err);
                     
                     if (!rows[0]) {

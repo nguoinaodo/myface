@@ -32,8 +32,8 @@ function main() {
         ajaxGet('/api/getUserInfo/' + userId, function(response) {
             var data = response.data;
             
-            avatarUrl = data.avatar? data.avatar.url: '';
-            coverUrl = data.cover? data.cover.url: '';
+            avatarUrl = data.info.avatarUrl;
+            coverUrl = data.info.coverUrl? data.info.coverUrl: '';
             document.querySelector('.profile-name span').innerHTML = data.info.displayName;
             
             // friend button
@@ -75,7 +75,6 @@ function main() {
             // avatar and cover
             profileAvatar.setAttribute('src', avatarUrl);
             profileCoverDiv.style.backgroundImage = 'url("' + coverUrl + '")';
-            
         });
         
         // get user postIds

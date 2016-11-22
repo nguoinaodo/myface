@@ -35,8 +35,13 @@ var postController = function(io) {
         
         if (auth) {
         	var pathArray = req.path.split('/');
-        	var isPostOnItsOwnPage = (pathArray.indexOf('api') == -1)? true: false;
         	var postId = Number(req.params.postId);
+
+            // SELECT user.userId, displayName, `dateTime`, `text`, (select count(userId) from yeu_thich where postId=2) as likes,
+            //     (select url from avatar, photo where avatar.photoId = photo.photoId and avatar.userId = user.userId) as avatarUrl 
+            // FROM `user`, dang_bai, post
+            // WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = 2
+            
             var infoQuery = 'SELECT user.userId, displayName, dateTime, text FROM user, dang_bai, post'
                 + ' WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = ?;'
                 + 'SELECT user.userId, displayName, dateTime, text FROM user, dang_len_tuong, post'
