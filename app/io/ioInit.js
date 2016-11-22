@@ -24,7 +24,7 @@ module.exports = function(io) {
                 socket.disconnect();
             } else {
                 tokenDoc.socketId = socket.id;
-                handleSocket(io);
+                handleSocket(io, socket);
                 console.log('Accept socket ' + socket.id);
                 socket.emit('welcome');
             }

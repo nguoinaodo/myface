@@ -36,13 +36,12 @@ module.exports = function(io) {
                     to: userId
                 };
 
-                query = 'INSERT INTO notification SET ?';
-                conn.query(query, [noti], function(err, result) {
+                query = 'INSERT INTO friend_request SET ? ON DUPLICATE KEY UPDATE ?';
+                conn.query(query, [noti, {dateTime: noti.dateTime}], function(err, result) {
                     if (err) return console.error(err);
 
                     var tokenDoc = tokenCollection.findOne({userId: userId});
                     if (tokenDoc) {
-                        noti.notiId = result.insertId;
                         noti.displayName = req.user.displayName;
                         delete noti.to;
                         io.sockets.connected[tokenDoc.socketId].emit('friendRequest', noti);
@@ -70,11 +69,16 @@ module.exports = function(io) {
                 userId2 = myId;
             }
             
-            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?'; 
+            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?;';
             conn.query(query, [userId1, userId2], function(err, result) {
                 if (err) return console.error(err);
                 
-                res.json({errCode: 0, msg: 'Successfully unfriend'});
+                query = 'DELETE FROM friend_request WHERE (`to` = ? AND `from` = ?) OR (`to` = ? AND `from` = ?) AND actionCode = 4;'; 
+                conn.query(query, [myId, userId, userId, myId], function(err, result) {
+                    if (err) return console.error(err);
+
+                    res.json({errCode: 0, msg: 'Successfully unfriend'});
+                });
             });
         } else {
             res.redirect('/');
@@ -92,16 +96,20 @@ module.exports = function(io) {
             if (myId < userId) {
                 userId1 = myId;
                 userId2 = userId;
-            } else {
+            } else {8080
                 userId1 = userId;
                 userId2 = myId;
             }
             
-            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?'; 
+            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?;';
             conn.query(query, [userId1, userId2], function(err, result) {
                 if (err) return console.error(err);
-                
-                res.json({errCode: 0, msg: 'Successfully cancel request'});
+                query = 'DELETE FROM friend_request WHERE `from` = ? AND `to` = ? AND actionCode = 3;'; // delete friend request notification
+                conn.query(query, [myId, userId], function(err, result) {
+                    if (err) return console.error(err);
+
+                    res.json({errCode: 0, msg: 'Successfully cancel request'});
+                });  
             });
         } else {
             res.redirect('/');
@@ -123,11 +131,16 @@ module.exports = function(io) {
                 userId1 = userId;
                 userId2 = myId;
             }
-            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?'; 
+            var query = 'DELETE FROM relationship WHERE userId1 = ? AND userId2 = ?;';
             conn.query(query, [userId1, userId2], function(err, result) {
                 if (err) return console.error(err);
                 
-                res.json({errCode: 0, msg: 'Successfully delete request'});
+                query = 'DELETE FROM friend_request WHERE `from` = ? AND `to` = ? AND actionCode = 3;'; // delete friend request notification
+                conn.query(query, [userId, myId], function(err, result) {
+                    if (err) return console.error(err);
+                    
+                    res.json({errCode: 0, msg: 'Successfully delete request'});
+                });
             });
         } else {
             res.redirect('/');
@@ -164,17 +177,21 @@ module.exports = function(io) {
                     to: userId
                 };
 
-                query = 'INSERT INTO notification SET ?';
-                conn.query(query, [noti], function(err, result) {
+                query = 'DELETE FROM friend_request WHERE `to` = ? AND `from` = ? AND actionCode = 3;' /* delete friend request notification */
+                conn.query(query, [myId, userId], function(err, result) {
                     if (err) return console.error(err);
 
-                    var tokenDoc = tokenCollection.findOne({userId: userId});
-                    if (tokenDoc) {
-                        noti.notiId = result.insertId;
-                        noti.displayName = req.user.displayName;
-                        delete noti.to;
-                        io.sockets.connected[tokenDoc.socketId].emit('friendRequestAccepted', noti);
-                    }
+                    query = 'INSERT INTO friend_request SET ?'; /* friend request accepted notification to requester */
+                    conn.query(query, [noti], function(err, result) {
+                        if (err) return console.error(err);
+
+                        var tokenDoc = tokenCollection.findOne({userId: userId});
+                        if (tokenDoc) {
+                            noti.displayName = req.user.displayName;
+                            delete noti.to;
+                            io.sockets.connected[tokenDoc.socketId].emit('friendRequestAccepted', noti);
+                        }    
+                    });
                 });
             });
         } else {

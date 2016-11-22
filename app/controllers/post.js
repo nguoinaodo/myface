@@ -5,16 +5,29 @@ var tokenCollection = require('../db/lokijs/token');
 var moment = require('moment');
 
 var postController = function(io) {
-	this.getPostPage = function(req, res) {
+	this.getFullPost = function(req, res) {
 		var auth = req.isAuthenticated();
-		if (auth) {
-			var postId = Number(req.params.postId);
-			var userId = req.user.userId;
-			
-		} else {
-			res.redirect('/');
-			
-		} 
+        
+        if (auth) {
+            var userId = req.user.userId;
+            var query = 'SELECT url FROM avatar, photo'
+                + ' WHERE avatar.photoId = photo.photoId'
+                + ' AND userId = ?'
+                + ' ORDER BY dateTime DESC LIMIT 1;';
+             
+            conn.query(query, [userId], function(err, rows) {
+                if (err) return console.error(err);
+                
+                res.render('post', {
+                    auth: auth,
+                    displayName: req.user.displayName,
+                    myId: userId,
+                    avatarUrl: rows[0]? rows[0].url: ''
+                });
+            });
+        } else {
+            res.redirect('/');
+        }
 	};
 
     this.getPost = function(req, res) {
@@ -128,63 +141,110 @@ var postController = function(io) {
                 
                 if (!rows[0]) {
                     // like
-                    query = 'INSERT INTO yeu_thich SET ?;' 
-                        + ' SELECT count(userId) FROM yeu_thich'
-                        + ' WHERE postId = ?;';
-                    conn.query(query, [{userId: userId, postId: postId}, postId], function(err, results) {
+                    query = 'INSERT INTO yeu_thich SET ?;';
+                    var dateTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
+                    conn.query(query, [{userId: userId, postId: postId, dateTime: dateTime}], function(err, results) {
                         if (err) return console.error(err);
                         
-                        res.json({
-                            data: {
-                                liked: true,
-                                likes: results[1][0]['count(userId)']
-                            }
-                        });
-                        // send notification
-                        query = 'SELECT userId FROM dang_bai WHERE postId = ?;'
-                            + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?;';
-                        conn.query(query, [postId, postId], function(err, results) {
+                        query = ' SELECT count(userId) FROM yeu_thich WHERE postId = ?;';
+                        conn.query(query, [postId], function(err, rows) {
                             if (err) return console.error(err);
-                            
-                            var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
-                            var noti = {
-                            	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-                            	actionCode: 0, // like
-                            	read: false,
-                            	from: userId,
-                            	to: receiverId, 
-                            	postId: postId
-                            };
-                            query = 'INSERT INTO notification SET ?';
-                            conn.query(query, [noti], function(err, result) {
-                            	if (err) return console.error(err);
 
-                            	var tokenDoc = tokenCollection.findOne({userId: receiverId});
-	                            if (tokenDoc) {
-	                            	noti.notiId = result.insertId;
-	                            	delete noti.userId2;
-	                            	noti.displayName = req.user.displayName;
-	                            	io.sockets.connected[tokenDoc.socketId].emit('like', noti);
-	                            	console.log('User id ' + userId + ' like post id ' + postId + ' of user id ' + receiverId);
-	                            }
-                            });
+                            if (rows[0]) {
+                                res.json({
+                                    data: {
+                                        liked: true,
+                                        likes: rows[0]['count(userId)']
+                                    }
+                                });
+                                // send notification
+                                query = 'SELECT userId FROM dang_bai WHERE postId = ?;'
+                                    + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?;';
+                                conn.query(query, [postId, postId], function(err, results) {
+                                    if (err) return console.error(err);
+                                    
+                                    var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
+                                    if (receiverId != userId) {
+                                        // if not my post
+                                        var noti = {
+                                            dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                                            actionCode: 0, // like
+                                            read: false,
+                                            lastFrom: userId,
+                                            to: receiverId, 
+                                            postId: postId
+                                        };
+                                        // insert or update if exists 
+                                        query = "INSERT INTO notification SET ?" 
+                                            + " ON DUPLICATE KEY UPDATE `dateTime` = ?, lastFrom = ?, `read`=0";
+                                        conn.query(query, [noti, noti.dateTime, userId], function(err, result) {
+                                            if (err) return console.error(err);
+
+                                            var tokenDoc = tokenCollection.findOne({userId: receiverId});
+                                            if (tokenDoc) {
+                                                delete noti.to;
+                                                noti.displayName = req.user.displayName;
+                                                io.sockets.connected[tokenDoc.socketId].emit('like', noti);
+                                                console.log('User id ' + userId + ' like post id ' + postId + ' of user id ' + receiverId);
+                                            }
+                                        });    
+                                    } 
+                                });
+                            }
                         });
                     });
                 } else {
                     // unlike
                     query = 'DELETE FROM yeu_thich'
-                        + ' WHERE userId = ? AND postId = ?;'
-                        + ' SELECT count(userId) FROM yeu_thich'
-                        + ' WHERE postId = ?;'; 
-                    conn.query(query, [userId, postId, postId], function(err, results) {
+                        + ' WHERE userId = ? AND postId = ?;';
+                    conn.query(query, [userId, postId, userId], function(err, results) {
                         if (err) return console.error(err);
                         
-                        res.json({
-                            data: {
-                                liked: false,
-                                likes: results[1][0]['count(userId)']   
-                            }
-                        });
+                        query = ' SELECT count(userId) AS `count` FROM yeu_thich WHERE postId = ?;';
+                        conn.query(query, [postId], function(err, rows) {
+                            if (err) return console.error(err);
+
+                            var likeCount = rows[0]['count'];
+                            // update notification if it is other's post
+                            query = 'SELECT userId FROM dang_bai WHERE postId = ?;'
+                                + 'SELECT userId1 FROM dang_len_tuong WHERE postId = ?;';
+                            conn.query(query, [postId, postId], function(err, results) {
+                                if (err) return console.error(err);
+
+                                var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
+                                if (receiverId != userId) {
+                                    // if not my post
+                                    if (likeCount == 0) {
+                                        // 1 like: unlike -> 0 like -> delete notification
+                                        query = 'DELETE FROM notification WHERE postId = ? AND actionCode = 0';
+                                        conn.query(query, [postId], function(err, result) {
+                                            if (err) return console.error(err); 
+                                        });
+                                    } else {
+                                        // update notification(`count`)
+                                        query = 'SELECT userId, dateTime FROM yeu_thich WHERE postId = ? ORDER BY `dateTime` DESC LIMIT 1';
+                                        conn.query(query, [postId], function(err, rows) {
+                                            if (err) return console.error(err);
+
+                                            if (rows[0]) {
+                                                query = "UPDATE notification SET `dateTime` = ?, lastFrom = ?"
+                                                    + " WHERE postId = ? AND actionCode = 0";
+                                                conn.query(query, [rows[0].dateTime, rows[0].userId, postId], function(err, result) {
+                                                    if (err) return console.error(err);
+                                                });
+                                            }
+                                        });
+                                    }
+                                }
+                            });
+                            
+                            res.json({
+                                data: {
+                                    liked: false,
+                                    likes: likeCount
+                                }
+                            });
+                        }); 
                     });
                 }
             });
@@ -225,28 +285,30 @@ var postController = function(io) {
                         if (err) return console.error(err);
                         
                         var receiverId = results[0][0]? results[0][0]['userId']: results[1][0]['userId1'];
-                        var noti = {
-                        	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-                        	actionCode: 1, // comment
-                        	read: false,
-                        	from: userId,
-                        	to: receiverId,
-                        	postId: postId
-                        };
+                        if (receiverId != userId) {
+                            // if not my post
+                            var noti = {
+                                dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                                actionCode: 1, // comment
+                                read: false,
+                                lastFrom: userId,
+                                to: receiverId,
+                                postId: postId
+                            };
 
-                        query = 'INSERT INTO notification SET ?';
-                        conn.query(query, [noti], function(err, result) {
-                        	if (err) return console.error(err);
+                            query = 'INSERT INTO notification SET ? ON DUPLICATE KEY UPDATE ?';
+                            conn.query(query, [noti, {dateTime: noti.dateTime, lastFrom: userId, read: 0}], function(err, result) {
+                                if (err) return console.error(err);
 
-                        	var tokenDoc = tokenCollection.findOne({userId: receiverId});
-	                        if (tokenDoc) {
-	                        	noti.notiId = result.insertId;
-	                        	noti.displayName = req.user.displayName;
-	                        	delete noti.userId2;	
-	                        	io.sockets.connected[tokenDoc.socketId].emit('comment', noti);	
-	                        	console.log('User id ' + userId + ' comment on post id ' + postId + ' of user id ' + receiverId);
-	                        }
-                        });
+                                var tokenDoc = tokenCollection.findOne({userId: receiverId});
+                                if (tokenDoc) {
+                                    noti.displayName = req.user.displayName;
+                                    delete noti.to;    
+                                    io.sockets.connected[tokenDoc.socketId].emit('comment', noti);  
+                                    console.log('User id ' + userId + ' comment on post id ' + postId + ' of user id ' + receiverId);
+                                }
+                            });    
+                        }
                     });
                 });
             });
@@ -317,18 +379,17 @@ var postController = function(io) {
 	                        	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
 	                        	actionCode: 2, // post on wall
 	                        	read: false,
-	                        	from: myId,
+	                        	lastFrom: myId,
 	                        	to: userId,
 	                        	postId: postId
 	                        };
 
-	                        query = 'INSERT INTO notification SET ?';
-	                        conn.query(query, [noti], function(err, result) {
+	                        query = 'INSERT INTO notification SET ? ON DUPLICATE KEY UPDATE ?';
+	                        conn.query(query, [noti, {dateTime: noti.dateTime, read: 0}], function(err, result) {
 	                        	if (err) return console.error(err);
 
 	                        	var tokenDoc = tokenCollection.findOne({userId: userId});
 	                            if (tokenDoc) {
-	                            	noti.notiId = result.insertId;
 	                            	noti.displayName = req.user.displayName;
 	                            	delete noti.to;
 	                                io.sockets.connected[tokenDoc.socketId].emit('postOnWall', noti);

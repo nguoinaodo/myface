@@ -17,6 +17,8 @@ function main() {
     var friendzoneDiv = document.querySelector('.profile-friendzone');
     var friendzoneBtn = document.querySelector('#friendzone-btn');
     
+    getNotiCount();
+    getFriendReqNotiCount();
     newsfeedDiv.innerHTML = '';
     // get my info
     ajaxGet('/api/myInfo', function(response) {
@@ -88,7 +90,6 @@ function main() {
     
 }
 
-
 function addFriend(thisObj) {
     var postData = 'userId=' + userId;
     
@@ -124,7 +125,6 @@ function cancelRequest(thisObj) {
 
 // user who receives request
 // on friend request notification
-
 function deleteRequest(thisObj) {
     var postData = 'userId=' + userId;
     

@@ -3,6 +3,7 @@
 var UserController = require(process.cwd() + '/app/controllers/user.js');
 var PostController = require(process.cwd() + '/app/controllers/post.js');
 var RelationshipController = require(process.cwd() + '/app/controllers/relationship.js');
+var NotificationController = require('../controllers/notification');
 var randToken = require('rand-token');
 var tokenCollection = require('../db/lokijs/token');
 
@@ -10,17 +11,17 @@ module.exports = function (app, upload, passport, io) {
 	var userController = new UserController(io);
 	var postController = new PostController(io);
 	var relationshipController = new RelationshipController(io);
+	var notificationController = new NotificationController(io);
 	
 	//// home 
 	app.route('/')
 		.get(userController.getHomePage);
-	
 	//// profile
 	app.route('/user/:userId')
 		.get(userController.getProfilePage);
 	//// post
 	app.route('/post/:postId')
-		.get(postController.getPostPage);
+		.get(postController.getFullPost);
 	//// api
 	// get my info 
 	app.route('/api/myInfo')
@@ -65,12 +66,33 @@ module.exports = function (app, upload, passport, io) {
 		.post(postController.comment);
 	
 	app.route('/api/addPost')
-		.post(upload.array('statusPhotos', 10), postController.addPost);
+		.post(postController.addPost);
+	// notification
+	app.route('/api/getNotiCount')
+		.get(notificationController.getNotiCount);
+
+	app.route('/api/getFriendReqNotiCount')
+		.get(notificationController.getFriendReqNotiCount);
 	
-	app.post('/photos/upload', upload.array('photos', 12), function (req, res, next) {
-	  // req.files is array of `photos` files 
-	  // req.body will contain the text fields, if there were any 
+	app.route('/api/getNotis')
+		.get(notificationController.getNotis);
+	
+	app.route('/api/getFriendReqNotis')
+		.get(notificationController.getFriendReqNotis);
+	// photo upload
+	app.post('/upload', upload.array('files', 12), function (req, res, next) {
+	  	// req.files is array of `photos` files 
+	  	// req.body will contain the text fields, if there were any 
+	  	console.log(req.files);
+	  	next();
 	});
+	
+	//// test
+	
+	app.get('/upload', function(req, res, next) {
+		res.sendFile(process.cwd() + '/public/testUpload.html');
+	});
+	
 	//// authentication
 	app.route('/login')
 		.get(function (req, res) {
@@ -86,7 +108,7 @@ module.exports = function (app, upload, passport, io) {
 				var oldToken = tokenCollection.findOne({userId: user.userId});
 				
 				if (oldToken) {
-					tokenCollection.remove(token);
+					tokenCollection.remove(oldToken);
 				}
 				// generate new random token for socket authentication
 				var token = randToken.generate(32);

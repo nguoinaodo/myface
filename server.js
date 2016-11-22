@@ -9,25 +9,34 @@ var server = http.Server(app);
 var routes = require('./app/routes/index.js');
 var passport = require('passport');
 var session = require('express-session');
+var multer = require('multer');
 var bodyParser = require('body-parser');
 var io = require('socket.io')(server);
 var ioInit = require('./app/io/ioInit');
-var multer = require('multer');
-var storage = multer.diskStorage({
-    destination: function(req, file, cb){
-        cb(null, './upload');
-    },
-    filename: function(req, file, cb){
-        cb(null, file.originalname);
-    }
-});
-var upload = multer({storage: storage});
 
 ioInit(io);
 require('./app/config/passport')(passport);
 
 app.set('view engine', 'jade');
 app.set('views', process.cwd() + '/templates');
+
+var storage = multer.diskStorage({
+    destination: function(req, file, cb) {
+        var arr = file.mimetype.split('/');
+        if (arr[0] == 'image') {
+            return cb(null, process.cwd() + '/upload/image');
+        } 
+        cb(null, process.cwd() + '/upload');
+    },
+    filename: function(req, file, cb) {
+        var arr = file.mimetype.split('/');
+        if (arr[0] == 'image') {
+            return cb(null, 'image-' + Date.now() + '.' + arr[1]);
+        }
+        cb(null, 'file-' + Date.now() + '-' + file.originalname);
+    }
+});
+var upload = multer({storage: storage});
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.use('/public', express.static(process.cwd() + '/public'));

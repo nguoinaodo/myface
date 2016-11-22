@@ -27,30 +27,30 @@ var UserController  = function(io) {
     };
     //
     this.getHomePage = function(req, res) {
-            var auth = req.isAuthenticated();
-			
-			if (auth) {
-			    var userId = req.user.userId;
-			    var query = 'SELECT url FROM avatar, photo'
-		            + ' WHERE avatar.photoId = photo.photoId'
-		            + ' AND userId = ?'
-		            + ' ORDER BY dateTime DESC LIMIT 1;';
-			     
-		        conn.query(query, [userId], function(err, rows) {
-		            if (err) return console.error(err);
-		            
-		            res.render('home', {
-    					auth: auth,
-    					displayName: req.user.displayName,
-    					myId: userId,
-    					avatarUrl: rows[0]? rows[0].url: ''
-    				});
-		        });
-			} else {
-				res.render('home', {
-					auth: auth
+        var auth = req.isAuthenticated();
+		
+		if (auth) {
+		    var userId = req.user.userId;
+		    var query = 'SELECT url FROM avatar, photo'
+	            + ' WHERE avatar.photoId = photo.photoId'
+	            + ' AND userId = ?'
+	            + ' ORDER BY dateTime DESC LIMIT 1;';
+		     
+	        conn.query(query, [userId], function(err, rows) {
+	            if (err) return console.error(err);
+	            
+	            res.render('home', {
+					auth: auth,
+					displayName: req.user.displayName,
+					myId: userId,
+					avatarUrl: rows[0]? rows[0].url: ''
 				});
-			}    
+	        });
+		} else {
+			res.render('home', {
+				auth: auth
+			});
+		}    
     };
     
     this.getNewsfeed = function(req, res) {

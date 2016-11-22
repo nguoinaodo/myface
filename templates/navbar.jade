@@ -7,21 +7,28 @@
       a(href='/logout').navbar-a
         i.fa.fa-power-off
     li.right.noti-li
-      span.noti-count
-      a(href='#').navbar-a
+      span.noti-count#noti-count
+      span.navbar-a#noti-show
         i.fa.fa-bell-o
-      .noti-container
-        .noti-header Notifications
-        .noti-body.notis
-          .noti.noti-loadmore ...            
-        .noti-footer
+      div(style="display: none;").noti-container#noti-container
+        .noti-header#noti-header Notifications
+        .noti-body#notis
+          //.noti.noti-loadmore ...            
+        .noti-footer#noti-footer
           a(href="#") See all
     li.right
-      a(href='#').navbar-a
+      span.navbar-a
         i.fa.fa-comments-o
-    li.right
-      a(href='#').navbar-a
+    li.right.noti-li
+      span.noti-count#friend-req-count
+      span.navbar-a#friend-req-show
         i.fa.fa-user-plus
+      div(style="display: none;").noti-container#friend-req-container
+        .noti-header#friend-req-header Friend requests
+        .noti-body#friend-reqs
+          //.noti.noti-loadmore ...            
+        .noti-footer#friend-req-footer
+          a(href="#") See all
     li.right
       a.active(href='/').navbar-a Home
     - var profileLink = '/user/' + myId

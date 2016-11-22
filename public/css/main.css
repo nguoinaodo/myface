@@ -17,6 +17,10 @@
   margin: 0px;
 }
 
+#navbar ul li:hover {
+  background-color: #002966;
+}
+
 .navbar-a {
   display: block;
   padding: 12px 14px;
@@ -28,6 +32,7 @@
   color: white;
   text-decoration: none;
   background-color: #002966;
+  cursor: pointer;
 }
 
 .navbar-a:visited {
@@ -140,6 +145,11 @@
   position: relative;
   border: 1px solid #eee;
   margin: 3px 2px;
+  background-color: #f4f6f9;
+}
+
+.noti a {
+  color: #333;
 }
 
 .noti-loadmore {
@@ -157,6 +167,10 @@
   display: block;
   content: '';
   clear: both;
+}
+
+.noti-is-read {
+  background-color: #fafbfe;
 }
 
 .noti-avatar {

@@ -39,14 +39,26 @@ create table `relationship` (
 );
 
 create table `notification` (
-	`notiId` int not null auto_increment,
+	`notiId` bigint not null auto_increment,
+    `dateTime` datetime,
+    `actionCode` tinyint,
+    `lastFrom` int,
+    `to` int not null,
+    `read` tinyint default 0,
+    `postId` int,
+    primary key (`notiId`),
+    unique index `notification_unique` (`actionCode` asc, `to` asc, `postId` asc)
+);
+
+create table `friend_request` (
+	`friendReqId` bigint not null auto_increment,
     `dateTime` datetime,
     `actionCode` tinyint,
     `from` int,
     `to` int not null,
-    `read` boolean,
-    `postId` int,
-    primary key (`notiId`)
+    `read` tinyint default 0,
+    primary key (`friendReqId`),
+    unique index `notification_unique` (`actionCode` asc, `to` asc)
 );
 
 create table `dang_bai` (
@@ -59,6 +71,7 @@ create table `dang_bai` (
 create table `yeu_thich` (
 	`userId` int not null,
     `postId` int not null,
+    `dateTime` datetime,
     primary key (`userId`, `postId`)
 );
 
@@ -215,7 +228,7 @@ alter table `reply`
     on delete cascade;
 
 alter table `notification` 
-	add constraint `fk_notification_from` foreign key (`from`)
+	add constraint `fk_notification_last_from` foreign key (`lastFrom`)
     references `user`(`userId`)
     on delete cascade,
     
@@ -225,6 +238,13 @@ alter table `notification`
     add constraint `fk_notification_to` foreign key (`to`)
     references `user`(`userId`)
     on delete cascade;
+
+alter table `friend_request` 
+	add constraint `fk_friend_request_from` foreign key (`from`)
+    references `user`(`userId`) on delete cascade,
+    
+    add constraint `fk_friend_requset_to` foreign key (`to`)
+    references `user`(`userId`) on delete cascade;
 
 alter table `relationship` 
 	add constraint `fk_relationship_userId1` foreign key (`userId1`)
