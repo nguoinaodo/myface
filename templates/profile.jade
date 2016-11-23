@@ -34,12 +34,7 @@ html
         
         #about
         
-        .new-status
-          .status-my-avatar.left: img(src= avatarUrl alt="img")
-          textarea(rows=3 placeholder="Write something..").status-input
-          // button.add-photo-btn Add photo
-          input(type="file" name="statusPhotos").status-photo
-          button(onclick="addPost();").post-status-btn.right Post
+        include newStatus
         
         #newsfeed
         

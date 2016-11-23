@@ -65,8 +65,7 @@ module.exports = function (app, upload, passport, io) {
 	app.route('/api/comment/:postId')
 		.post(postController.comment);
 	
-	app.route('/api/addPost')
-		.post(postController.addPost);
+	app.post('/api/addPost', upload.array('statusPhotos[]', 12), postController.addPost);
 	// notification
 	app.route('/api/getNotiCount')
 		.get(notificationController.getNotiCount);
@@ -84,6 +83,7 @@ module.exports = function (app, upload, passport, io) {
 	  	// req.files is array of `photos` files 
 	  	// req.body will contain the text fields, if there were any 
 	  	console.log(req.files);
+	  	if (req.files[0]) console.log(req.files[0].path.replace(process.cwd(), ''));
 	  	next();
 	});
 	

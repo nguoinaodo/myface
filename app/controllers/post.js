@@ -3,6 +3,7 @@
 var conn = require(process.cwd() + '/app/db/mysql/connection.js');
 var tokenCollection = require('../db/lokijs/token');
 var moment = require('moment');
+var multiparty = require('multiparty');
 
 var postController = function(io) {
 	this.getFullPost = function(req, res) {
@@ -329,81 +330,95 @@ var postController = function(io) {
             var myId = req.user.userId;
             var userId = Number(req.body.to);
             var text = req.body.text;
-            var query;
-            conn.query('INSERT INTO post SET ?;', [{text: text}], function(err, result) {
+            var query = 'INSERT INTO post SET ?';
+            conn.query(query, [{text: text}], function(err, result) {
                 if (err) return console.error(err);
                 
                 var postId = result.insertId;
                 var dateTime = moment(new Date()).format('YYYY-MM-DD HH:mm:ss');
                 
-                if (myId === userId || userId === -1) {
-                    // post 
-                    query = 'INSERT INTO dang_bai SET ?';
-                    conn.query(query, [{postId: postId, userId: myId, dateTime: dateTime}], function(err, result) {
-                        if (err) return console.error(err);
-                        
-                        res.json({
-                            errCode: 0,
-                            msg: 'Successfully posted',
-                            data: {
-                                postId: postId
-                            }
-                        }); 
+                // save photos
+                var photos = [];
+                query = '';
+                req.files.forEach(function(file, i) {
+                    query += 'INSERT INTO photo SET ?;';
+                    photos.push({
+                        url: file.path.replace(process.cwd(), ''),
+                        postId: postId
                     });
-                } else {
-                    /////// post onto other's wall
-                    // check friendship
-                    var userId1, userId2;
-                    
-                    if (myId < userId) {
-                        userId1 = myId;
-                        userId2 = userId;
-                    } else {
-                        userId1 = userId;
-                        userId2 = myId;
-                    }
-                    query = 'SELECT * FROM relationship WHERE userId1 = ? AND userId2 = ?';
-                    conn.query(query, [userId1, userId2], function(err, rows) {
-                        if (err) return console.error(err);    
-                        
-                        if (!rows[0] || rows[0].statusCode !== 1) {
-                            return res.json({errCode: -1, msg: 'Not friend'});
-                        }
-                        query = 'INSERT INTO dang_len_tuong SET ?';
-                        conn.query(query, [{postId: postId, userId1: myId, userId2: userId, dateTime: dateTime}], function(err, result) {
-                            if (err) return console.error(err);    
+                });
+                conn.query(query, photos, function(err, results) {
+                    if (err) return console.error(err);
+
+                    if (myId === userId || userId === -1) {
+                        // post 
+                        query = 'INSERT INTO dang_bai SET ?';
+                        conn.query(query, [{postId: postId, userId: myId, dateTime: dateTime}], function(err, result) {
+                            if (err) return console.error(err);
+
                             res.json({
                                 errCode: 0,
-                                msg: 'Successfully posted on this user wall',
+                                msg: 'Successfully posted',
                                 data: {
                                     postId: postId
                                 }
                             }); 
-                            // send notification
-                            var noti = {
-	                        	dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
-	                        	actionCode: 2, // post on wall
-	                        	read: false,
-	                        	lastFrom: myId,
-	                        	to: userId,
-	                        	postId: postId
-	                        };
-
-	                        query = 'INSERT INTO notification SET ? ON DUPLICATE KEY UPDATE ?';
-	                        conn.query(query, [noti, {dateTime: noti.dateTime, read: 0}], function(err, result) {
-	                        	if (err) return console.error(err);
-
-	                        	var tokenDoc = tokenCollection.findOne({userId: userId});
-	                            if (tokenDoc) {
-	                            	noti.displayName = req.user.displayName;
-	                            	delete noti.to;
-	                                io.sockets.connected[tokenDoc.socketId].emit('postOnWall', noti);
-	                                console.log('User id ' + myId + ' post a post id ' + postId + ' of user id ' + userId);
-	                            }
-	                        });
                         });
-                    });
-                }
+                    } else {
+                        // post onto other's wall
+                        // check friendship
+                        var userId1, userId2;
+                        
+                        if (myId < userId) {
+                            userId1 = myId;
+                            userId2 = userId;
+                        } else {
+                            userId1 = userId;
+                            userId2 = myId;
+                        }
+                        query = 'SELECT * FROM relationship WHERE userId1 = ? AND userId2 = ?';
+                        conn.query(query, [userId1, userId2], function(err, rows) {
+                            if (err) return console.error(err);    
+                            
+                            if (!rows[0] || rows[0].statusCode !== 1) {
+                                return res.json({errCode: -1, msg: 'Not friend'});
+                            }
+                            query = 'INSERT INTO dang_len_tuong SET ?';
+                            conn.query(query, [{postId: postId, userId1: myId, userId2: userId, dateTime: dateTime}], function(err, result) {
+                                if (err) return console.error(err);    
+                                res.json({
+                                    errCode: 0,
+                                    msg: 'Successfully posted on this user wall',
+                                    data: {
+                                        postId: postId
+                                    }
+                                }); 
+                                // send notification
+                                var noti = {
+                                    dateTime: moment(new Date()).format('YYYY-MM-DD HH:mm:ss'),
+                                    actionCode: 2, // post on wall
+                                    read: false,
+                                    lastFrom: myId,
+                                    to: userId,
+                                    postId: postId
+                                };
+
+                                query = 'INSERT INTO notification SET ? ON DUPLICATE KEY UPDATE ?';
+                                conn.query(query, [noti, {dateTime: noti.dateTime, read: 0}], function(err, result) {
+                                    if (err) return console.error(err);
+
+                                    var tokenDoc = tokenCollection.findOne({userId: userId});
+                                    if (tokenDoc) {
+                                        noti.displayName = req.user.displayName;
+                                        delete noti.to;
+                                        io.sockets.connected[tokenDoc.socketId].emit('postOnWall', noti);
+                                        console.log('User id ' + myId + ' post a post id ' + postId + ' of user id ' + userId);
+                                    }
+                                });
+                            });
+                        });
+                    }
+                });
             });
         } else {
             res.redirect('/');

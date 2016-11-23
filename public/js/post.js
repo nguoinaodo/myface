@@ -161,20 +161,34 @@ function showComments(thisObj) {
 
 function addPost() {
     var text = document.querySelector('.status-input').value;
-    var postData = 'text=' + text + '&to=' + (userId? userId: -1);
-    
-    ajaxPost('/api/addPost', postData, function(response) {
+    var xmlhttp = new XMLHttpRequest();
+    var formData = new FormData();
+    var filesObj = document.querySelector('.status-photos').files;
+
+    for (var i = 0; i < filesObj.length; ++i) {
+        formData.append('statusPhotos[]', filesObj[i]);
+    }
+    formData.append('text', text);
+    formData.append('to', userId? userId: -1);
+    xmlhttp.onreadystatechange = function () {
+        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+            callback(JSON.parse(xmlhttp.responseText));
+        }
+    };
+   
+    xmlhttp.open('POST', '/api/addPost', true);
+    console.log(formData.getAll('statusPhotos[]'));
+    xmlhttp.send(formData);
+
+    function callback(response) {
         if (response.errCode === 0) {
-            // add to newsfeed 
             var postId = response.data.postId;
-            
             getPost(postId);
         } else if (response.errCode === -1) {
             // not friend
             // can't post
-            
         }
-    });
+    }
 }
 
 function delPost(thisObj) {
