@@ -19,6 +19,7 @@ function main() {
     
     getNotiCount();
     getFriendReqNotiCount();
+    getMessageCount()
     newsfeedDiv.innerHTML = '';
     // get my info
     ajaxGet('/api/myInfo', function(response) {

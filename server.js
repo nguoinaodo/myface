@@ -39,6 +39,10 @@ var storage = multer.diskStorage({
 var upload = multer({storage: storage});
 
 app.use(bodyParser.urlencoded({extended: false}));
+// app.use(function(req, res, next) {
+//     console.log('Request from ip ' + req.ip);
+//     next();
+// });
 app.use('/public', express.static(process.cwd() + '/public'));
 app.use('/upload', express.static(process.cwd() + '/upload'));
 app.use(session({
@@ -58,4 +62,5 @@ routes(app, upload, passport, io);
 var port = process.env.PORT || 8080;
 server.listen(port,  function () {
 	console.log('Node.js listening on port ' + port + '...');
+    console.log('Process id: %d', process.pid);
 });

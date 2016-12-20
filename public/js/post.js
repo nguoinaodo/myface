@@ -88,10 +88,10 @@ function comment(thisObj) {
         commentsDiv.innerHTML = '<div class="comment" id="comment' + commentId + '">' 
             + commentHeader + commentText
             + '</div>' + commentsDiv.innerHTML;    
-        commentsDiv.removeChild('button');
-        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);">Hide comments</button>';
         input.value = '';
-        input.setAttribute('autofocus');
+        input.autofocus = true;
+        document.querySelector('#toggleComments' + postId).remove();
+        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);"><a>Hide comments</a></button>';
     });
 } 
 
@@ -130,7 +130,7 @@ function getComments(thisObj) {
         commentArr.forEach(function(comment, i) {
             commentsDiv.innerHTML += comment; 
         });
-        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);">Hide comments</button>';
+        commentsDiv.innerHTML += '<button class="toggleComments" id="toggleComments' + postId + '" onclick="hideComments(this);"><a>Hide comments</a></button>';
     });
 }
 
@@ -143,7 +143,7 @@ function hideComments(thisObj) {
         commentsDivChildren[i].style.display = 'none';
     }
     
-    thisObj.innerHTML = 'Show comments';
+    thisObj.innerHTML = '<a>Show comments</a>';
     thisObj.setAttribute('onclick', 'showComments(this);')
 }
 
@@ -155,7 +155,7 @@ function showComments(thisObj) {
     for (var i = 0; i < commentsDivChildren.length - 1; i++) {
         commentsDivChildren[i].style.display = '';
     }
-    thisObj.innerHTML = 'Hide comments';
+    thisObj.innerHTML = '<a>Hide comments</a>';
     thisObj.setAttribute('onclick', 'hideComments(this);');
 }
 
@@ -166,18 +166,17 @@ function addPost() {
     var filesObj = document.querySelector('.status-photos').files;
 
     for (var i = 0; i < filesObj.length; ++i) {
-        formData.append('statusPhotos[]', filesObj[i]);
+        formData.append('statusPhotos', filesObj[i]);
     }
     formData.append('text', text);
     formData.append('to', userId? userId: -1);
+    
     xmlhttp.onreadystatechange = function () {
         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
             callback(JSON.parse(xmlhttp.responseText));
         }
     };
-   
     xmlhttp.open('POST', '/api/addPost', true);
-    console.log(formData.getAll('statusPhotos[]'));
     xmlhttp.send(formData);
 
     function callback(response) {

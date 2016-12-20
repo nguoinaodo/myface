@@ -1,14 +1,17 @@
 // notification
 var notiPage = 0;
 var isNotisShow = false;
+const NOTIS_PER_PAGE = 6;
 // friend request
 var friendReqNotiPage = 0;
 var isFriendReqNotisShow = false;
+const REQ_PER_PAGE = 8;
 
 // click on notification 
 document.getElementById('noti-show').addEventListener('click', function() {
 	if (isNotisShow) {
 		document.getElementById('noti-container').style.display = 'none';
+		notiPage = 0;
 		isNotisShow = false;
 	} else {
 		document.getElementById('noti-count').style.display = 'none';
@@ -20,6 +23,7 @@ document.getElementById('noti-show').addEventListener('click', function() {
 document.getElementById('friend-req-show').addEventListener('click', function() {
 	if (isFriendReqNotisShow) {
 		document.getElementById('friend-req-container').style.display = 'none';
+		friendReqNotiPage = 0;
 		isFriendReqNotisShow = false;
 	} else {
 		document.getElementById('friend-req-count').style.display = 'none';
@@ -27,7 +31,15 @@ document.getElementById('friend-req-show').addEventListener('click', function() 
 		isFriendReqNotisShow = true;
 	}
 });
-
+// click on see more notifications
+document.getElementById('seemore-notis').addEventListener('click', function() {
+	seeMoreNotis();
+});
+// click on see more notifications
+document.getElementById('seemore-friend-reqs').addEventListener('click', function() {
+	seeMoreFriendReqs();
+});
+// notification count
 function getNotiCount() {
 	ajaxGet('/api/getNotiCount', function(response) {
 		var notiCountSpan = document.querySelector('#noti-count');
@@ -39,7 +51,7 @@ function getNotiCount() {
 		}
 	});	
 }
-
+// friend request count
 function getFriendReqNotiCount() {
 	ajaxGet('/api/getFriendReqNotiCount', function(response) {
 		var friendReqCountSpan = document.querySelector('#friend-req-count');
@@ -52,14 +64,20 @@ function getFriendReqNotiCount() {
 		
 	});
 }
-
+// get notifications
 function getNotis(page) {
 	ajaxGet('/api/getNotis?page=' + page, function(response) {
 		var notis = response.data.notis;
 		var notisDiv = document.getElementById('notis');
 		
-		notisDiv.innerHTML = '';
-		document.getElementById('noti-container').style.display = '';
+		if (page === 0) {
+			notisDiv.innerHTML = '';
+			document.getElementById('noti-container').style.display = '';
+			document.getElementById('seemore-notis').style.display = '';
+		}
+		if (notis.length < NOTIS_PER_PAGE) {
+			document.getElementById('seemore-notis').style.display = 'none';
+		} 
 		notis.forEach(function(noti, i) {
 			var notiContent = '';
 			var href = '/post/' + noti.postId;
@@ -99,15 +117,20 @@ function getNotis(page) {
 		});
 	});
 }
-
+// get friend requests notification
 function getFriendReqNotis(page) {
-	// get friend requests notification
 	ajaxGet('/api/getFriendReqNotis?page=' + page, function(response) {
 		var friendReqNotis = response.data.friendReqNotis;
 		var friendReqsDiv = document.getElementById('friend-reqs');
 
-		friendReqsDiv.innerHTML = '';
-		document.getElementById('friend-req-container').style.display = '';
+		if (page === 0) {
+			friendReqsDiv.innerHTML = '';
+			document.getElementById('friend-req-container').style.display = '';	
+			document.getElementById('seemore-friend-reqs').style.display = '';
+		}
+		if (friendReqNotis.length < REQ_PER_PAGE) {
+			document.getElementById('seemore-friend-reqs').style.display = 'none';
+		}
 		friendReqNotis.forEach(function(noti, i) {
 			var notiContent = '';
 			var href = '/user/' + noti.from;
@@ -137,7 +160,16 @@ function getFriendReqNotis(page) {
 		});
 	});
 }
-
+// see more notifications
+function seeMoreNotis() {
+	notiPage++;
+	getNotis(notiPage);
+}
+// see more friend requests
+function seeMoreFriendReqs() {
+	friendReqNotiPage++;
+	getFriendReqNotis(friendReqNotiPage);
+}
 // confirm request on notification
 function friendReqNotiConfirm(thisObj, userId) {
 	var postData = 'userId=' + userId;
@@ -164,7 +196,6 @@ function friendReqNotiDelete(thisObj, userId) {
 		}
 	});
 }
-
 // notification has been read
 function notiRead(thisObj) {
 	if (!thisObj.classList.contains('noti-is-read')) {

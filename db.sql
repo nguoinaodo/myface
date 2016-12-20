@@ -57,8 +57,7 @@ create table `friend_request` (
     `from` int,
     `to` int not null,
     `read` tinyint default 0,
-    primary key (`friendReqId`),
-    unique index `notification_unique` (`actionCode` asc, `to` asc)
+    primary key (`friendReqId`)
 );
 
 create table `dang_bai` (
@@ -114,12 +113,15 @@ create table `conversation` (
 	`conId` int not null auto_increment,
 	`userId1` int not null,
     `userId2` int not null,
+    `lastFrom` int not null,
+	`read` tinyint,
+    `dateTime` datetime,
     primary key (`conId`)
 );
 
 create table `conversation_reply` (
 	`replyId` int not null auto_increment,
-    `text` text,
+    `content` varchar(4096),
     primary key (`replyId`)
 );
 
@@ -128,7 +130,8 @@ create table `reply` (
     `userId` int not null,
     `conId` int not null,
     `dateTime` datetime,
-    primary key (`replyId`)
+    primary key (`replyId`),
+    index `dateTime_index` (`dateTime` desc)
 );
 
 alter table `photo`

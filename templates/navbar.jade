@@ -13,12 +13,27 @@
       div(style="display: none;").noti-container#noti-container
         .noti-header#noti-header Notifications
         .noti-body#notis
-          //.noti.noti-loadmore ...            
+        .noti-seemore
+          span.seemore#seemore-notis See more             
         .noti-footer#noti-footer
           a(href="#") See all
-    li.right
-      span.navbar-a
+    li.right.noti-li
+      span.noti-count#message-count
+      span.navbar-a#message-show
         i.fa.fa-comments-o
+      div(style="display: none;").noti-container#message-container
+        .noti-header#message-header Messages
+        .noti-body#messages
+          // .msg
+          //   .msg-avatar: img(src="http://vnu.com.vn/wp-content/uploads/freshizer/599863026a6b554981d5639361d0a1ed_sarah-570-543-c.jpg" alt="img")
+          //   .msg-contents
+          //     .msg-display-name Luu Hoang
+          //     .msg-datetime 2016 Dec 
+          //     .msg-content Bui Hoang luu nha tin nay
+        .noti-seemore
+          span.seemore#seemore-messages See more                         
+        .noti-footer#message-footer
+          a(href="#") See all
     li.right.noti-li
       span.noti-count#friend-req-count
       span.navbar-a#friend-req-show
@@ -26,7 +41,8 @@
       div(style="display: none;").noti-container#friend-req-container
         .noti-header#friend-req-header Friend requests
         .noti-body#friend-reqs
-          //.noti.noti-loadmore ...            
+        .noti-seemore
+          span.seemore#seemore-friend-reqs See more                     
         .noti-footer#friend-req-footer
           a(href="#") See all
     li.right

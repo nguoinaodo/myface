@@ -339,13 +339,15 @@ var postController = function(io) {
                 
                 // save photos
                 var photos = [];
-                query = '';
+                query = 'SELECT * FROM `user` WHERE userId < 0;';
                 req.files.forEach(function(file, i) {
-                    query += 'INSERT INTO photo SET ?;';
-                    photos.push({
-                        url: file.path.replace(process.cwd(), ''),
-                        postId: postId
-                    });
+                    if (file.mimetype === 'image/jpeg' || file.mimetype === 'image/png') {
+                        query += 'INSERT INTO photo SET ?;';
+                        photos.push({
+                            url: file.path.replace(process.cwd(), ''),
+                            postId: postId
+                        });    
+                    }
                 });
                 conn.query(query, photos, function(err, results) {
                     if (err) return console.error(err);

@@ -10,6 +10,7 @@ ready(main);
 function main() {
     getNotiCount();
     getFriendReqNotiCount();
+    getMessageCount()
     // get my info
     ajaxGet('/api/myInfo', function(response) {
         var data = response.data;

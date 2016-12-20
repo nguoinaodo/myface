@@ -4,7 +4,9 @@ var UserController = require(process.cwd() + '/app/controllers/user.js');
 var PostController = require(process.cwd() + '/app/controllers/post.js');
 var RelationshipController = require(process.cwd() + '/app/controllers/relationship.js');
 var NotificationController = require('../controllers/notification');
+var ConversationController = require('../controllers/conversation');
 var randToken = require('rand-token');
+var conn = require('../db/mysql/connection');
 var tokenCollection = require('../db/lokijs/token');
 
 module.exports = function (app, upload, passport, io) {
@@ -12,23 +14,29 @@ module.exports = function (app, upload, passport, io) {
 	var postController = new PostController(io);
 	var relationshipController = new RelationshipController(io);
 	var notificationController = new NotificationController(io);
-	
+	var conversationController = new ConversationController(io);
+
 	//// home 
 	app.route('/')
 		.get(userController.getHomePage);
+	
 	//// profile
 	app.route('/user/:userId')
 		.get(userController.getProfilePage);
+	
 	//// post
 	app.route('/post/:postId')
 		.get(postController.getFullPost);
+	
 	//// api
 	// get my info 
 	app.route('/api/myInfo')
 		.get(userController.getMyInfo);
+	
 	// homepage
 	app.route('/api/getNewsfeed')
 		.get(userController.getNewsfeed);
+	
 	// user
 	app.route('/api/getUserInfo/:userId')
 		.get(userController.getUserInfo);
@@ -65,7 +73,8 @@ module.exports = function (app, upload, passport, io) {
 	app.route('/api/comment/:postId')
 		.post(postController.comment);
 	
-	app.post('/api/addPost', upload.array('statusPhotos[]', 12), postController.addPost);
+	app.post('/api/addPost', upload.array('statusPhotos', 12), postController.addPost);
+	
 	// notification
 	app.route('/api/getNotiCount')
 		.get(notificationController.getNotiCount);
@@ -78,6 +87,20 @@ module.exports = function (app, upload, passport, io) {
 	
 	app.route('/api/getFriendReqNotis')
 		.get(notificationController.getFriendReqNotis);
+	
+	// conversation
+	app.route('/api/conversationByUserId/:userId')
+		.get(conversationController.getConversationByUserId);
+
+	app.route('/api/conversationByConId/:conId')
+		.get(conversationController.getConversationByConId);
+
+	app.route('/api/newMessageCount')
+		.get(conversationController.getNewMessageCount);
+
+	app.route('/api/conversations')
+		.get(conversationController.getConversations);
+
 	// photo upload
 	app.post('/upload', upload.array('files', 12), function (req, res, next) {
 	  	// req.files is array of `photos` files 
@@ -85,11 +108,6 @@ module.exports = function (app, upload, passport, io) {
 	  	console.log(req.files);
 	  	if (req.files[0]) console.log(req.files[0].path.replace(process.cwd(), ''));
 	  	next();
-	});
-	
-	//// test
-	app.get('/upload', function(req, res, next) {
-		res.sendFile(process.cwd() + '/public/testUpload.html');
 	});
 	
 	//// authentication
@@ -155,7 +173,46 @@ module.exports = function (app, upload, passport, io) {
 	app.route('/logout')
 		.get(function (req, res) {
 			var tokenDoc = tokenCollection.findOne({userId: req.user.userId});
-			tokenCollection.remove(tokenDoc);
+			
+            if (tokenDoc) {
+                var userId = tokenDoc.userId;
+                // notify online friends
+                var onlineFriends = [];
+                var query = 'SELECT userId2 AS friendId FROM relationship WHERE userId1 = ? AND `statusCode` = 1';
+                conn.query(query, [userId], (err, rows) => {
+                    if (err) return console.error(err);
+                    rows.forEach((row, i) => {
+                        var friendDoc = tokenCollection.findOne({userId: row.friendId});
+                        if (friendDoc) {
+                            if (friendDoc.socketId) {
+                                onlineFriends.push(friendDoc.socketId);
+                            }    
+                        }
+                    });
+                    query = 'SELECT userId1 AS friendId FROM relationship WHERE userId2 = ? AND `statusCode` = 1';
+                    conn.query(query, [userId], (err, rows) => {
+                        if (err) return console.error(err);
+                        rows.forEach((row, i) => {
+                            var friendDoc = tokenCollection.findOne({userId: row.friendId});
+                            if (friendDoc) {
+                                if (friendDoc.socketId) {
+                                    onlineFriends.push(friendDoc.socketId);
+                                }    
+                            }    
+                        });
+                        // notify
+                        onlineFriends.forEach((socketId) => {
+                            io.sockets.connected[socketId].emit('goOffline', {
+                                socketId: tokenDoc.socketId,
+                                userId: userId
+                            });
+                            console.log('send goOffline')
+                        });
+                        //
+						tokenCollection.remove(tokenDoc);                                              
+                    });
+                });
+            }
 			req.logout();
 			res.redirect('/login');
 		});

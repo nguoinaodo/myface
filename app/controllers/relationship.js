@@ -96,7 +96,7 @@ module.exports = function(io) {
             if (myId < userId) {
                 userId1 = myId;
                 userId2 = userId;
-            } else {8080
+            } else {
                 userId1 = userId;
                 userId2 = myId;
             }

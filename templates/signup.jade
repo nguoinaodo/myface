@@ -4,40 +4,47 @@ html
     link(rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css" type="text/css")
     link(rel="stylesheet" href="/public/css/signup.css" type="text/css")
   body(style="background-color: #f2f2f2;")
-    h1#welcome Welcome to myface 
+    //h1#welcome Welcome to myface 
     br
     form(action="/signup" method="POST")#signup
       h1 Sign up
       br
-      b Email
-      input(name="email").text
+      .signup-element
+        b Email
+        input(name="email").text
       br
-      b Password
-      input(name="password" type="password").text
+      .signup-element
+        b Password
+        input(name="password" type="password").text
       br
-      b Full name
-      input(name="displayName" type="text").text
+      .signup-element
+        b Full name
+        input(name="displayName" type="text").text
       br
-      b From
-      input(name="from" type="text").text
+      .signup-element
+        b From
+        input(name="from" type="text").text
       br
-      b Lives in
-      input(name="livesIn" type="").text
+      .signup-element
+        b Lives in
+        input(name="livesIn" type="").text
       br
-      b Birthday
-      input(name="birthday" type="date").text
+      .signup-element
+        b Birthday
+        input(name="birthday" type="date").text
       br
-      b Sex
-      br
-      .radio: label
-        input(type="radio" name="sex" value="male")
-        | Male
-      .radio: label
-        input(type="radio" name="sex" value="female")
-        | Female
-      .radio: label 
-        input(type="radio" name="sex" value="other")
-        | Other
+      .signup-element
+        b Sex
+        br
+        .radio: label
+          input(type="radio" name="sex" value="male")
+          | Male
+        .radio: label
+          input(type="radio" name="sex" value="female")
+          | Female
+        .radio: label 
+          input(type="radio" name="sex" value="other")
+          | Other
       br
       
       input(type="submit" value="Sign up")#signup-btn
