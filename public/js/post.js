@@ -1,7 +1,11 @@
-function getPost(postId) {
+function getPost(postId, isStatus) {
     var newsfeedDiv = document.getElementById('newsfeed');
-    newsfeedDiv.innerHTML = '<div class="post" id="post' + postId + '"></div>'
-        + newsfeedDiv.innerHTML;
+    if (isStatus) {
+        newsfeedDiv.innerHTML = '<div class="post" id="post' + postId + '"></div>'
+            + newsfeedDiv.innerHTML;
+    } else {
+        newsfeedDiv.innerHTML += '<div class="post" id="post' + postId + '"></div>';
+    }
     var postDiv = document.getElementById('post' + postId);
     var postHeader = '<div class="post-header" id="postHeader' + postId + '">' 
         + '<div class="post-owner-avatar left" id="post-owner-avatar' + postId + '"><img alt="img"></div>' 
@@ -30,7 +34,9 @@ function getPost(postId) {
         var data = response.data;
         var likes = data.likes;
         var userId = data.content.userId,
+            receiverId = data.content.receiverId,
             displayName = data.content.displayName,
+            receiverName = data.content.receiverName,
             dateTime = data.content.dateTime,
             text = data.content.text,
             avatarUrl = data.avatarUrl,
@@ -39,6 +45,9 @@ function getPost(postId) {
         var postPhotoDiv = document.getElementById('post-photo' + postId);
         
         document.querySelector('#post-owner-name' + postId).innerHTML = '<a href="/user/' + userId + '"><b>' + displayName + '</b></a>';
+        if (receiverId) {
+            document.querySelector('#post-owner-name' + postId).innerHTML += ' &#10148; <a href="/user/' + receiverId + '"><b>' + receiverName + '</b></a>';
+        }
         document.querySelector('#post-time' + postId + ' span').innerHTML = dateTime;
         document.querySelector('#post-text' + postId + ' p').innerHTML = text;
         document.querySelector('#like-btn' + postId).innerHTML = likes + ' Like';
@@ -88,10 +97,13 @@ function comment(thisObj) {
         commentsDiv.innerHTML = '<div class="comment" id="comment' + commentId + '">' 
             + commentHeader + commentText
             + '</div>' + commentsDiv.innerHTML;    
+
         input.value = '';
-        input.autofocus = true;
-        document.querySelector('#toggleComments' + postId).remove();
-        commentsDiv.innerHTML += '<button id="toggleComments' + postId + '" onclick="hideComments(this);"><a>Hide comments</a></button>';
+        input.focus();
+        if (document.querySelector('#toggleComments' + postId)) {
+            document.querySelector('#toggleComments' + postId).remove();
+        }
+        commentsDiv.innerHTML += '<button class="toggleComments" id="toggleComments' + postId + '" onclick="hideComments(this);"><a>Hide comments</a></button>';
     });
 } 
 
@@ -160,7 +172,8 @@ function showComments(thisObj) {
 }
 
 function addPost() {
-    var text = document.querySelector('.status-input').value;
+    var input = document.querySelector('.status-input'); 
+    var text = input.value;
     var xmlhttp = new XMLHttpRequest();
     var formData = new FormData();
     var filesObj = document.querySelector('.status-photos').files;
@@ -182,7 +195,8 @@ function addPost() {
     function callback(response) {
         if (response.errCode === 0) {
             var postId = response.data.postId;
-            getPost(postId);
+            getPost(postId, true);
+            input.value = '';
         } else if (response.errCode === -1) {
             // not friend
             // can't post

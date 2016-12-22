@@ -125,7 +125,63 @@ function getConversationByUserId(thisObj) {
 	ajaxGet('/api/conversationByUserId/' + userId, (response) => {
 		var conId = response.data.conId;
 
-		if (!activeConversation[conId]) {
+		if (conId) {
+			if (!activeConversation[conId]) {
+				var displayName = document.getElementById('chat-sidebar-name-' + userId).innerHTML;
+				var avatarUrl = document.getElementById('chat-sidebar-avatar-img-' + userId).getAttribute('src');
+
+				var chatBox = document.createElement('div');
+				var chatHeader = document.createElement('div');
+				var chatHeaderLeft = document.createElement('div');
+				var chatHeaderRight = document.createElement('div');
+				var chatContent = document.createElement('div');
+				var chatInput = document.createElement('div');
+
+				chatBox.setAttribute('class', 'chat-popup');
+				chatBox.setAttribute('id', 'chat-popup-' + conId);
+				chatHeader.setAttribute('class', 'chat-popup-header');
+				chatHeaderLeft.setAttribute('class', 'chat-popup-header-left');
+				chatHeaderRight.setAttribute('class', 'chat-popup-header-right');
+				chatHeader.setAttribute('onclick', 'toggleChatContent(this)');
+				chatHeaderRight.setAttribute('onclick', 'closeChatBox(this)');
+				chatContent.setAttribute('class', 'chat-popup-content');
+				chatContent.setAttribute('id', 'chat-popup-content-' + conId);
+				chatInput.setAttribute('class', 'chat-popup-input');
+
+				chatHeaderLeft.innerHTML = '<span class="chat-popup-header-name">' + displayName + '</span>';
+				chatHeaderRight.innerHTML = '<span>X</span>';
+				chatInput.innerHTML = '<input type="text" placeholder="Type a message.." autofocus>' +
+					' <button class="chat-popup-send-btn" onclick="sendMessage(this)">Send</button>';
+
+				chatHeader.appendChild(chatHeaderRight);
+				chatHeader.appendChild(chatHeaderLeft);
+				chatBox.appendChild(chatHeader);
+				chatBox.appendChild(chatContent);
+				chatBox.appendChild(chatInput);
+
+				document.getElementById('container').appendChild(chatBox);
+				activeConversation[conId] = true;
+				activeConversationAvatarUrl[conId] = avatarUrl;
+				
+				ajaxGet('/api/conversationByConId/' + conId + '?page=0', (response) => {
+					response.data.replies.forEach((reply, i) => {
+						chatContent.insertBefore(createReply(reply, avatarUrl), chatContent.firstChild);
+					});
+
+					// set position 
+					chatContent.scrollTop = chatContent.lastChild.offsetTop;
+
+					if (response.data.replies.length === REPLIES_PER_PAGE) {
+						var chatSeemore = document.createElement('div');
+						chatSeemore.setAttribute('class', 'chat-popup-seemore');
+						chatSeemore.innerHTML = '<span onclick="seeMoreReplies(this)">See more</span>';
+
+						chatContent.insertBefore(chatSeemore, chatContent.firstChild);
+						activeConversation[conId] = 1;
+					}
+				});
+			}
+		} else {
 			var displayName = document.getElementById('chat-sidebar-name-' + userId).innerHTML;
 			var avatarUrl = document.getElementById('chat-sidebar-avatar-img-' + userId).getAttribute('src');
 
@@ -136,20 +192,18 @@ function getConversationByUserId(thisObj) {
 			var chatContent = document.createElement('div');
 			var chatInput = document.createElement('div');
 
-			chatBox.setAttribute('class', 'chat-popup');
-			chatBox.setAttribute('id', 'chat-popup-' + conId);
+			chatBox.setAttribute('class', 'chat-popup chat-popup-user-' + userId);
 			chatHeader.setAttribute('class', 'chat-popup-header');
 			chatHeaderLeft.setAttribute('class', 'chat-popup-header-left');
 			chatHeaderRight.setAttribute('class', 'chat-popup-header-right');
 			chatHeader.setAttribute('onclick', 'toggleChatContent(this)');
 			chatHeaderRight.setAttribute('onclick', 'closeChatBox(this)');
 			chatContent.setAttribute('class', 'chat-popup-content');
-			chatContent.setAttribute('id', 'chat-popup-content-' + conId);
 			chatInput.setAttribute('class', 'chat-popup-input');
 
 			chatHeaderLeft.innerHTML = '<span class="chat-popup-header-name">' + displayName + '</span>';
 			chatHeaderRight.innerHTML = '<span>X</span>';
-			chatInput.innerHTML = '<input type="text" placeholder="Type a message..">' +
+			chatInput.innerHTML = '<input type="text" placeholder="Type a message.." autofocus>' +
 				' <button class="chat-popup-send-btn" onclick="sendMessage(this)">Send</button>';
 
 			chatHeader.appendChild(chatHeaderRight);
@@ -159,23 +213,6 @@ function getConversationByUserId(thisObj) {
 			chatBox.appendChild(chatInput);
 
 			document.getElementById('container').appendChild(chatBox);
-			activeConversation[conId] = true;
-			activeConversationAvatarUrl[conId] = avatarUrl;
-			
-			ajaxGet('/api/conversationByConId/' + conId + '?page=0', (response) => {
-				response.data.replies.forEach((reply, i) => {
-					chatContent.insertBefore(createReply(reply, avatarUrl), chatContent.firstChild);
-				});
-
-				if (response.data.replies.length === REPLIES_PER_PAGE) {
-					var chatSeemore = document.createElement('div');
-					chatSeemore.setAttribute('class', 'chat-popup-seemore');
-					chatSeemore.innerHTML = '<span onclick="seeMoreReplies(this)">See more</span>';
-
-					chatContent.insertBefore(chatSeemore, chatContent.firstChild);
-					activeConversation[conId] = 1;
-				}
-			});
 		}
 	});	
 }
@@ -228,7 +265,7 @@ function getConversationByConId(thisObj) {
 
 		chatHeaderLeft.innerHTML = '<span class="chat-popup-header-name">' + displayName + '</span>';
 		chatHeaderRight.innerHTML = '<span>X</span>';
-		chatInput.innerHTML = '<input type="text" placeholder="Type a message..">' +
+		chatInput.innerHTML = '<input type="text" placeholder="Type a message.." autofocus>' +
 			' <button class="chat-popup-send-btn" onclick="sendMessage(this)">Send</button>';
 
 		chatHeader.appendChild(chatHeaderRight);
@@ -245,6 +282,9 @@ function getConversationByConId(thisObj) {
 			response.data.replies.forEach((reply, i) => {
 				chatContent.insertBefore(createReply(reply, avatarUrl), chatContent.firstChild);
 			});
+
+			// set position 
+			chatContent.scrollTop = chatContent.lastChild.offsetTop;
 
 			if (response.data.replies.length === REPLIES_PER_PAGE) {
 				var chatSeemore = document.createElement('div');
@@ -281,12 +321,16 @@ function toggleChatContent(thisObj) {
 
 function closeChatBox(thisObj) {
 	var chatBox = thisObj.parentNode.parentNode;
-	// chat-popup-..
-	var conId = Number(chatBox.getAttribute('id').substr(11));
+	if (chatBox.getAttribute('id')) {
+		// chat-popup-..
+		var conId = Number(chatBox.getAttribute('id').substr(11));
 
-	chatBox.remove();
-	activeConversation[conId] = null;
-	activeConversationAvatarUrl[conId] = null;
+		chatBox.remove();
+		activeConversation[conId] = null;
+		activeConversationAvatarUrl[conId] = null;	
+	} else {
+		chatBox.remove();
+	}
 }
 
 function seeMoreReplies(thisObj, avatarUrl) {
@@ -318,19 +362,45 @@ function seeMoreReplies(thisObj, avatarUrl) {
 
 function sendMessage(thisObj) {
 	var chatBox = thisObj.parentNode.parentNode;
-	var conId = Number(chatBox.getAttribute('id').substr(11));
+	var input = thisObj.parentNode.firstChild;
 	var content = thisObj.parentNode.firstChild.value;
 
-	socket.emit('message', {
-		conId: conId,
-		content: content
-	});
+	if (chatBox.getAttribute('id')) {
+		var conId = Number(chatBox.getAttribute('id').substr(11));
+	}
+
+	if (conId) {
+		socket.emit('message', {
+			conId: conId,
+			content: content
+		});
+	} else {
+		// chat-popup-user-..
+		var to = Number(chatBox.classList.item(1).substr(16));
+		socket.emit('message', {
+			content: content,
+			to: to
+		});
+	}
+	
 
 	socket.once('sent', (data) => {
-		console.log('sent %s', socket.id)
-		var chatContent = document.getElementById('chat-popup-content-' + conId);
-		if (chatContent) {
-			chatContent.appendChild(createReply({content: content, userId: myUserId}));	
+		if (data) {
+			chatBox.classList.remove('chat-popup-user-' + to);
+			chatBox.setAttribute('id', 'chat-popup-' + data.conId)
+			var chatContent = chatBox.childNodes[1];
+			if (chatContent) {
+				chatContent.appendChild(createReply({content: content, userId: myUserId}));	
+			}
+		} else {
+			var chatContent = document.getElementById('chat-popup-content-' + conId);
+			if (chatContent) {
+				chatContent.appendChild(createReply({content: content, userId: myUserId}));	
+			}	
 		}
+		input.value = '';
+		// set position 
+		chatContent.scrollTop = chatContent.lastChild.offsetTop;
+		input.focus();
 	});
 }

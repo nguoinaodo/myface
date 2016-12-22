@@ -53,8 +53,49 @@ var UserController  = function(io) {
 		}    
     };
     
-    this.getNewsfeed = function(req, res) {
-        res.json({});  
+    this.getNewsfeedPostIdsByDateTime = function(req, res) {
+        if (req.isAuthenticated()) {
+            const POSTS_PER_PAGE = 5;
+            var userId = req.user.userId;
+            var page = Number(req.query.page);
+            var postIds = [];
+            var query = 'SELECT postId FROM dang_bai, relationship' + 
+                ' WHERE dang_bai.userId = (CASE relationship.userId1 WHEN ? THEN relationship.userId2 END)' +
+                ' OR dang_bai.userId = (CASE relationship.userId2 WHEN ? THEN relationship.userId1 END)' +
+                ' ORDER BY postId DESC LIMIT ? OFFSET ?';
+            conn.query(query, [userId, userId, POSTS_PER_PAGE, page*POSTS_PER_PAGE], (err, rows) => {
+                console.log(query)
+                if (err) return console.error(err);
+
+                rows.forEach((row, i) => {
+                    postIds.push(row.postId);
+                });
+
+                query = 'SELECT postId FROM dang_len_tuong, relationship' + 
+                    ' WHERE dang_len_tuong.userId1 = (CASE relationship.userId1 WHEN ? THEN relationship.userId2 END)' +
+                    ' OR dang_len_tuong.userId1 = (CASE relationship.userId2 WHEN ? THEN relationship.userId1 END)' +
+                    ' ORDER BY postId DESC LIMIT ? OFFSET ?';
+                conn.query(query, [userId, userId, POSTS_PER_PAGE, page*POSTS_PER_PAGE], (err, rows) => {
+                    if (err) return console.error(err);
+
+                    rows.forEach((row, i) => {
+                        postIds.push(row.postId);
+                    });
+
+                    postIds.sort((a, b) => {
+                        return b-a;
+                    });
+                    console.log(postIds)
+                    return res.json({
+                        data: {
+                            postIds: postIds
+                        }
+                    });
+                });
+            });
+        } else {
+            res.redirect('/');
+        }
     };
     
     this.getProfilePage = function(req, res) {
@@ -162,7 +203,7 @@ var UserController  = function(io) {
                 });
                 // sort
                 postIds.sort(function (a, b) {
-                    return a - b;
+                    return b-a;
                 });
                 
                 return res.json({

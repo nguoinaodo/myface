@@ -258,10 +258,10 @@
 .new-status {
   background-color: white;
   position: relative;
-  left: 10%;
+  left: 5%;
   border: 1px solid #ddd;
   border-radius: 1px;
-  width: 50%;
+  width: 40%;
   padding: 10px;
 }
 
@@ -298,10 +298,10 @@
 
 .post-status-btn {
   padding: 5px 2%;
-  border: 1px solid gray;
-  background-color: #3b5998;
-  border-radius: 1px;
-  color: #e6ecff;
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  color: #333;
   font-size: 13px;
 }
 
@@ -320,12 +320,29 @@
   display: block;
   clear: both;
 }
+
+.newsfeed-see-more {
+  position: relative;
+  left: 5%;
+  width: 40%;
+  padding: 8px 2%;
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  color: #3b5998;
+  font-size: 14px;
+}
+
+.newsfeed-see-more:hover {
+  background-color: #ddd;
+}
+
 /* Post */
 .post {
   background-color: white;
   position: relative;
   width: 40%;
-  left: 10%;
+  left: 5%;
   margin: 10px 0%;
   border: 1px solid #ddd;
   border-radius: 1px;
@@ -393,21 +410,26 @@
 
 .like-btn {
   padding: 5px 2%;
-  border: 1px solid gray;
-  background-color: #3b5998;
-  border-radius: 1px;
-  color: #e6ecff;
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  color: #333;
   font-size: 13px;
 }
 
 .comment-btn {
   padding: 5px 2%;
-  border: 1px solid gray;
-  background-color: #3b5998;
-  border-radius: 1px;
-  color: #e6ecff;
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  color: #333;
   font-size: 13px;
 }
+
+.comment-btn:hover, .like-btn:hover {
+  background-color: #ddd;
+}
+
 /**/
 .comments {
   border: px solid gray;
@@ -491,18 +513,22 @@
 .post-comment-btn {
   width: 11%;
   margin: 3px 0;
-  padding: 5px;
-  border: 1px solid gray;
-  background-color: #3b5998;
-  border-radius: 1px;
-  color: #e6ecff;
+  padding: 4px;
+  border: 1px solid #ddd;
+  background-color: #eee;
+  border-radius: 3px;
+  color: #333;
   font-size: 13px;
+}
+
+.post-comment-btn:hover {
+  background-color: #dedede;
 }
 
 /* Profile header */
 .profile-header {
   position: relative;
-  width: 80%;
+  width: 70%;
   left: 5%;
   background-color: white;
   border: 1px solid #ddd;
@@ -886,7 +912,7 @@ img {
   /* Post */
   .post{
     width: 80%;
-    left: 3%;
+    left: 5%;
 }
 
 .post-owner-avatar {
@@ -907,13 +933,13 @@ img {
 }
 
 .post-comment-btn {
-    width: 20%;
+    width: 15%;
     margin-left: 0%;
 }
 /* New status */ 
 .new-status {
-    width: 94%;
-    left: 3%;
+    width: 80%;
+    left: 5%;
 }
 
 .status-my-avatar {

@@ -20,7 +20,7 @@ var conversationController = function(io) {
 						}
 					});
 				} else {
-					return res.json({});
+					return res.json({data: {}});
 				}
 			});
 		} else {
@@ -122,7 +122,7 @@ var conversationController = function(io) {
 						}
 					});
 				} else {
-					res.json({});
+					res.json({data: {}});
 				}
 			});
 		} else {

@@ -34,44 +34,50 @@ module.exports = function(io, socket) {
 	socket.on('requestChatList', (data) => {
 		console.log('requestChatList')
 		// send chat list 
-		var tokenDocs = tokenCollection.find({});
+		// var tokenDocs = tokenCollection.find({});
 		var myUserId = tokenCollection.findOne({socketId: socket.id}).userId;
 		var result = [];
+		var query = 'SELECT (CASE userId1 WHEN ? THEN userId2 ELSE userId1 END) AS friendId FROM relationship' +
+			' WHERE (userId1 = ? OR userId2 = ?) AND statusCode = 1';
+		conn.query(query, [myUserId, myUserId, myUserId], (err, rows) => {
+			if (err) return console.error(err);
 
-		tokenDocs.forEach((doc, i) => {
-			if (doc.userId != myUserId) {
-				result.push({
-					userId: doc.userId,
-					socketId: doc.socketId
-				});	
-			}
-		});
-		
-		var count = 0;
-		var n = result.length;
-		if (n === 0) {
-			return socket.emit('chatList', {
-				online: []
+			rows.forEach((row, i) => {
+				var friendDoc = tokenCollection.findOne({userId: row.friendId});
+				if (friendDoc) {
+					result.push({
+						userId: row.friendId,
+						socketId: friendDoc.socketId
+					});	
+				}
 			});
-		}
-		result.forEach((user, i) => {
-			var query = 'SELECT displayName, (SELECT url FROM avatar, photo WHERE avatar.photoId = photo.photoId' +
-				' AND avatar.userId = ? ORDER BY avatar.`dateTime` DESC LIMIT 1) AS avatarUrl' +
-				' FROM `user` WHERE userId = ?';
+			
+			var count = 0;
+			var n = result.length;
+			if (n === 0) {
+				return socket.emit('chatList', {
+					online: []
+				});
+			}
+			result.forEach((user, i) => {
+				query = 'SELECT displayName, (SELECT url FROM avatar, photo WHERE avatar.photoId = photo.photoId' +
+					' AND avatar.userId = ? ORDER BY avatar.`dateTime` DESC LIMIT 1) AS avatarUrl' +
+					' FROM `user` WHERE userId = ?';
 
-			conn.query(query, [user.userId, user.userId], (err, rows) => {
-				if (err) return console.error(err);
+				conn.query(query, [user.userId, user.userId], (err, rows) => {
+					if (err) return console.error(err);
 
-				if (rows[0]) {
-					result[i].displayName = rows[0].displayName;
-					result[i].avatarUrl = rows[0].avatarUrl;
-				}
-				count++;			
-				if (count == n) {
-					socket.emit('chatList', {
-						online: result
-					});
-				}
+					if (rows[0]) {
+						result[i].displayName = rows[0].displayName;
+						result[i].avatarUrl = rows[0].avatarUrl;
+					}
+					count++;			
+					if (count == n) {
+						socket.emit('chatList', {
+							online: result
+						});
+					}
+				});
 			});
 		});
 	});
@@ -93,7 +99,6 @@ module.exports = function(io, socket) {
 				if (err) return console.error(err);
 				
 				if (!rows[0]) {
-					var avatarUrl = rows[0].avatarUrl;
 					// init conversation
 					query = 'INSERT INTO conversation SET ?';
 					conn.query(query, [{
@@ -123,7 +128,9 @@ module.exports = function(io, socket) {
 								if (err) return console.error(err);
 
 								// send succes msg
-								socket.emit('sent');
+								socket.emit('sent', {
+									conId: conId
+								});
 								// send to receiver if online								
 								var receiverDoc = tokenCollection.findOne({userId: to});
 								if (receiverDoc && receiverDoc.socketId) {

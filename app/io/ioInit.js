@@ -29,6 +29,7 @@ module.exports = function(io) {
                 var userId = tokenDoc.userId;
                 var onlineFriends = [];
                 var query = 'SELECT userId2 AS friendId FROM relationship WHERE userId1 = ? AND `statusCode` = 1';
+                console.log(query);
                 conn.query(query, [userId], (err, rows) => {
                     if (err) return console.error(err);
                     rows.forEach((row, i) => {
@@ -40,6 +41,7 @@ module.exports = function(io) {
                         }
                     });
                     query = 'SELECT userId1 AS friendId FROM relationship WHERE userId2 = ? AND `statusCode` = 1';
+                    console.log(query);
                     conn.query(query, [userId], (err, rows) => {
                         if (err) return console.error(err);
                         rows.forEach((row, i) => {

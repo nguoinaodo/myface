@@ -34,8 +34,8 @@ module.exports = function (app, upload, passport, io) {
 		.get(userController.getMyInfo);
 	
 	// homepage
-	app.route('/api/getNewsfeed')
-		.get(userController.getNewsfeed);
+	app.route('/api/getNewsfeedPostIdsByDateTime')
+		.get(userController.getNewsfeedPostIdsByDateTime);
 	
 	// user
 	app.route('/api/getUserInfo/:userId')

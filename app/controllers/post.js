@@ -45,7 +45,8 @@ var postController = function(io) {
             
             var infoQuery = 'SELECT user.userId, displayName, dateTime, text FROM user, dang_bai, post'
                 + ' WHERE user.userId = dang_bai.userId AND post.postId = dang_bai.postId AND post.postId = ?;'
-                + 'SELECT user.userId, displayName, dateTime, text FROM user, dang_len_tuong, post'
+                + 'SELECT user.userId, dang_len_tuong.userId2 AS receiverId, displayName, (SELECT displayName FROM `user` WHERE userId = dang_len_tuong.userId2) AS receiverName, '
+                + ' dateTime, text FROM user, dang_len_tuong, post'
                 + ' WHERE user.userId = dang_len_tuong.userId1 AND post.postId = dang_len_tuong.postId AND post.postId = ?;';
             var likeQuery =  'SELECT count(userId) FROM yeu_thich '
                 + ' WHERE postId = ?;';
@@ -55,6 +56,7 @@ var postController = function(io) {
                 if (err) return console.error(err);
                 
                 var content = results[0][0]? results[0][0]: results[1][0];
+                content = Object.assign({}, content);
                 var userId = content['userId'];
                 var photoUrls = [];
                 
@@ -101,7 +103,7 @@ var postController = function(io) {
                 var results = [];
                 var count = rows.length;
                 if (count === 0) {
-                    res.json({data: []});
+                    res.json({data: {comments: []}});
                 }
                 
                 rows.forEach(function(row, i) {
