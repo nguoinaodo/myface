@@ -47,11 +47,15 @@ h1 {
 
 #signup-btn {
   padding: 6px 2%;
-  background-color: #3b5998;
-  border: 1px solid gray;
+  background-color: #eee;
+  border: 1px solid #fff;
   border-radius: 2px;
-  color: white;
+  color: #3b5998;
   float: right;
+}
+
+#signup-btn:hover {
+  background-color: #fff;
 }
 
 b {

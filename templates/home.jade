@@ -9,9 +9,10 @@ html
     script(src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.5.1/socket.io.js')
   body(style="background-color: #f2f2f2;")
     if !auth
-      h1 Please login or sign up
-      button: a(href="/login") Login
-      button: a(href="/signup") Sign up
+      .startup
+        h1 Please login or sign up
+        a(href="/login").login Login
+        a(href="/signup").signup Sign up
     else 
       include navbar
       #container

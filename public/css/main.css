@@ -1,3 +1,22 @@
+/* Start up */
+.startup {
+  padding: 20px;
+}
+
+.login, .signup {
+  background-color: #eee;
+  border: 1px solid #fff;
+  color: #3377ff;
+  padding: 8px;
+  margin-right: 8px;
+  font-size: 16px;
+  text-decoration: none;
+}
+
+.login:hover, .signup:hover {
+  background-color: #fff;
+  text-decoration: none;
+}
 /* Navigation bar */
 #navbar ul {
   list-style-type: none;

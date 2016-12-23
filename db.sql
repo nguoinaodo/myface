@@ -102,13 +102,6 @@ create table `dang_len_tuong` (
     primary key (`postId`)
 );
 
-create table `quan_he` (
-	`userId1` int not null,
-	`userId2` int not null,
-    `statusCode` tinyint,
-    primary key (`userId1`, `userId2`)
-);
-
 create table `conversation` (
 	`conId` int not null auto_increment,
 	`userId1` int not null,
@@ -142,6 +135,9 @@ alter table `photo`
 alter table `dang_bai` 
 	add constraint `fk_dang_bai_userId` foreign key (`userId`)
     references `user`(`userId`)
+    on delete cascade,
+    add constraint `fk_dang_bai_postId` foreign key (`postId`)
+    references `post`(`postId`)
     on delete cascade;
     
 alter table `yeu_thich`
@@ -182,15 +178,6 @@ alter table `cover`
     
     add constraint `fk_cover_userId` foreign key (`userId`)
     references `user`(`userId`) 
-    on delete cascade;
-
-alter table `quan_he` 
-	add constraint `fk_quan_he_userId1` foreign key (`userId1`)
-    references `user`(`userId`)
-    on delete cascade,
-    
-    add constraint `fk_quan_he_userId2` foreign key (`userId2`)
-    references `user`(`userId`)
     on delete cascade;
 
 alter table `dang_len_tuong` 
