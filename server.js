@@ -1,8 +1,8 @@
 'use strict';
 
-require('dotenv').load();
-var http = require('http');
+// require('dotenv').load();
 
+var http = require('http');
 var express = require('express');
 var app = express();
 var server = http.Server(app);
@@ -52,14 +52,10 @@ app.use(session({
 }));
 app.use(passport.initialize());
 app.use(passport.session());
-// test socket
-app.get('/test', function(req, res) {
-	res.sendFile(process.cwd() + '/public/test.html');	
-});
 
 routes(app, upload, passport, io);
 
-var port = process.env.PORT || 8080;
+var port = 8080;
 server.listen(port,  function () {
 	console.log('Node.js listening on port ' + port + '...');
     console.log('Process id: %d', process.pid);
