@@ -55,7 +55,7 @@ app.use(passport.session());
 
 routes(app, upload, passport, io);
 
-var port = 8080;
+var port = process.env.PORT || 8080;
 server.listen(port,  function () {
 	console.log('Node.js listening on port ' + port + '...');
     console.log('Process id: %d', process.pid);
